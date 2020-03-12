@@ -1,5 +1,9 @@
 # node-weakauras-parser
 
+## Installation
+
+In order to build the module, you need to install [Rust](https://www.rust-lang.org/tools/install) and [zlib](https://www.zlib.net/).
+
 ## Usage
 
 ```javascript
