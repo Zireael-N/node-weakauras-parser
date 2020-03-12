@@ -1,0 +1,22 @@
+{
+  "name": "node-weakauras-parser",
+  "version": "1.0.0",
+  "description": "Native module for node.js that does deserialization/serialization of WeakAuras' strings",
+  "main": "lib/index.js",
+  "author": "Velithris",
+  "license": "MIT",
+  "dependencies": {
+    "neon-cli": "^0.3.3"
+  },
+  "scripts": {
+    "install": "neon build --release",
+    "install:debug": "neon build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Zireael-N/node-weakauras-parser.git"
+  },
+  "engines": {
+    "node": ">= 12.16.1"
+  }
+}

@@ -1,0 +1,22 @@
+[package]
+name = "node-weakauras-parser"
+version = "1.0.0"
+authors = ["Velithris"]
+edition = "2018"
+license = "MIT"
+build = "build.rs"
+exclude = ["artifacts.json", "index.node"]
+
+[lib]
+name = "neon_world"
+crate-type = ["cdylib"]
+
+[profile.release]
+lto = true # increases compile time, decreases size of a binary
+
+[build-dependencies]
+neon-build = "0.3.3"
+
+[dependencies]
+neon = "0.3.3"
+flate2 = { version = "1.0.13", features = ["zlib"], default-features = false }
