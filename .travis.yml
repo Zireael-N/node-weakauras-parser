@@ -1,0 +1,19 @@
+os:
+  - osx
+  - linux
+language: node_js
+node_js:
+  - node
+  - lts/*
+  - 10
+  - 9
+  - 8
+cache: cargo
+before_install:
+  - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  - export PATH="$HOME/.cargo/bin:$PATH"
+  - source "$HOME/.cargo/env"
+  - yarn
+script:
+  - pushd native && cargo test && popd
+  - if [[ "$TRAVIS_PULL_REQUEST" == "false" && "$(git tag --points-at)" ]]; then rm -rf native/target && yarn upload-binary || exit 0; fi

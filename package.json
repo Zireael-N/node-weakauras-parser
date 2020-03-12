@@ -1,22 +1,33 @@
 {
   "name": "node-weakauras-parser",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Native module for node.js that does deserialization/serialization of WeakAuras' strings",
   "main": "lib/index.js",
   "author": "Velithris",
   "license": "MIT",
   "dependencies": {
-    "neon-cli": "^0.3.3"
+    "neon-cli": "^0.3.3",
+    "node-pre-gyp": "amilajack/node-pre-gyp",
+    "node-pre-gyp-github": "^1.4.3"
   },
   "scripts": {
-    "install": "neon build --release",
-    "install:debug": "neon build"
+    "install": "node-pre-gyp install --fallback-to-build=false || neon build --release",
+    "install:debug": "neon build",
+    "upload-binary": "node-pre-gyp package && node-pre-gyp-github publish"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/Zireael-N/node-weakauras-parser.git"
   },
   "engines": {
-    "node": ">= 12.16.1"
+    "node": ">= 8"
+  },
+  "binary": {
+    "module_name": "index",
+    "host": "https://github.com/Zireael-N/node-weakauras-parser/releases/download/",
+    "remote_path": "v{version}",
+    "package_name": "{node_abi}-{platform}-{arch}-{libc}.tar.gz",
+    "module_path": "./native",
+    "pkg_path": "."
   }
 }
