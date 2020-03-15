@@ -137,8 +137,6 @@ impl<'s> Deserializer<'s> {
         match data {
             "1.#INF" | "inf" => Ok(std::f64::INFINITY),
             "-1.#INF" | "-inf" => Ok(std::f64::NEG_INFINITY),
-            "1.#IND" | "nan" => Ok(std::f64::NAN),
-            "-1.#IND" | "-nan" => Ok(-std::f64::NAN),
             v => v.parse().map_err(|_| "failed to parse a number"),
         }
     }

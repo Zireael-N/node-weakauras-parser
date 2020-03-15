@@ -62,7 +62,7 @@ where
         } else if let Ok(val) = value.downcast::<JsString>() {
             Ok(format!("^S{}", self.serialize_string(&val.value())))
         } else if let Ok(val) = value.downcast::<JsNumber>() {
-            Ok(Self::serialize_number(val.value()))
+            Self::serialize_number(val.value())
         } else if let Ok(val) = value.downcast::<JsArray>() {
             let len = val.len();
             let mut result = String::with_capacity(len as usize * 6 + 4);
@@ -100,9 +100,9 @@ where
     }
 
     #[cfg_attr(feature = "cargo-clippy", allow(clippy::float_cmp))]
-    fn serialize_number(value: f64) -> String {
-        if value.is_nan() {
-            "^N1.#IND".into()
+    fn serialize_number(value: f64) -> Result<String, &'static str> {
+        Ok(if value.is_nan() {
+            return Err("AceSerializer does not support NaNs");
         } else if !value.is_finite() {
             format!("^N{}", if value > 0.0 { "1.#INF" } else { "-1.#INF" })
         } else if value.to_string().parse::<f64>().unwrap() == value {
@@ -110,7 +110,7 @@ where
         } else {
             let (mantissa, exponent, sign) = f64_to_parts(value);
             format!("^F{}{}^f{}", if sign < 0 { "-" } else { "" }, mantissa, exponent)
-        }
+        })
     }
 
     fn serialize_string<'a>(&'a mut self, value: &'a str) -> &'a str {
