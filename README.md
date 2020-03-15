@@ -2,7 +2,21 @@
 
 ## Installation
 
-In order to build the module, you need to install [Rust](https://www.rust-lang.org/tools/install) and [zlib](https://www.zlib.net/).
+```bash
+npm install node-weakauras-parser
+# or
+yarn add node-weakauras-parser
+```
+
+The package is pre-built for the following environments:
+
+|       OS        | Node 8 | Node 10 | Node 12 | Node 13 |
+|-----------------|--------|---------|---------|---------|
+|   Linux glibc   |   ✔️    |    ✔️    |    ✔️    |    ✔️    |
+| Linux musl-libc |   ✔️    |    ✔️    |    ✔️    |    ✔️    |
+|      macOS      |   ✔️    |    ✔️    |    ✔️    |    ✔️    |
+
+If you use something else, you will need [Rust](https://www.rust-lang.org/tools/install) and [zlib](https://www.zlib.net/) in order to build from source code.
 
 ## Usage
 
