@@ -14,5 +14,5 @@ before_install:
   - source "$HOME/.cargo/env"
   - yarn
 script:
-  - pushd native && cargo test && popd
+  - pushd native && cargo test --release && popd
   - if [[ "$TRAVIS_PULL_REQUEST" == "false" && "$(git tag --points-at)" ]]; then rm -rf native/target && yarn upload-binary || exit 0; fi

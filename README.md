@@ -10,11 +10,12 @@ yarn add node-weakauras-parser
 
 The package is pre-built for the following environments:
 
-|       OS        | Node 8 | Node 10 | Node 12 | Node 13 |
-|-----------------|--------|---------|---------|---------|
-|   Linux glibc   |   ✔️    |    ✔️    |    ✔️    |    ✔️    |
-| Linux musl-libc |   ✔️    |    ✔️    |    ✔️    |    ✔️    |
-|      macOS      |   ✔️    |    ✔️    |    ✔️    |    ✔️    |
+|          OS           | Node 8 | Node 10 | Node 12 | Node 13 |
+|-----------------------|--------|---------|---------|---------|
+|   Linux glibc (x64)   |   ✔️    |    ✔️    |    ✔️    |    ✔️    |
+| Linux musl-libc (x64) |   ✔️    |    ✔️    |    ✔️    |    ✔️    |
+|      macOS (x64)      |   ✔️    |    ✔️    |    ✔️    |    ✔️    |
+|     Windows (x64)     |   ✔️    |    ✔️    |    ✔️    |    ✔️    |
 
 If you use something else, you will need [Rust](https://www.rust-lang.org/tools/install) and [zlib](https://www.zlib.net/) in order to build from source code.
 
