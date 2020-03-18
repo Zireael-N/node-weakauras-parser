@@ -4,14 +4,20 @@ mod sse;
 
 #[inline(always)]
 fn calculate_capacity(s: &str) -> Result<usize, &'static str> {
+    // Equivalent to s.len() * 3 / 4 but does not overflow
     let len = s.len();
-    if len % 4 == 1 {
+
+    let leftover = len % 4;
+    if leftover == 1 {
         return Err("invalid base64 length");
     }
+    let mut result = len / 4 * 3;
 
-    len.checked_mul(3)
-        .map(|len| len / 4)
-        .ok_or("cannot calculate capacity without overflowing")
+    if leftover > 0 {
+        result += leftover - 1;
+    }
+
+    Ok(result)
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "ssse3"))]

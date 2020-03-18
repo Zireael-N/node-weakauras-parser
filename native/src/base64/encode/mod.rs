@@ -4,10 +4,19 @@ mod sse;
 
 #[inline(always)]
 fn calculate_capacity(data: &[u8]) -> Result<usize, &'static str> {
-    data.len()
+    // Equivalent to (s.len() * 4 + 2) / 3 but avoids an early overflow
+    let len = data.len();
+    let leftover = len % 3;
+
+    (len / 3)
         .checked_mul(4)
-        .and_then(|len| len.checked_add(2))
-        .map(|len| len / 3)
+        .and_then(|len| {
+            if leftover > 0 {
+                len.checked_add(leftover + 1)
+            } else {
+                Some(len)
+            }
+        })
         .ok_or("cannot calculate capacity without overflowing")
 }
 
