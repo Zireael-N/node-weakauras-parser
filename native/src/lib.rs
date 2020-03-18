@@ -30,9 +30,11 @@ pub fn decode_weakaura(mut cx: FunctionContext) -> JsResult<JsValue> {
         inflater.read_to_end(&mut result).unwrap();
         Cow::from(result)
     };
-    let decompressed = std::str::from_utf8(&decompressed).unwrap();
+    let decompressed = String::from_utf8_lossy(&decompressed);
 
-    let deserialized = Deserializer::from_str(decompressed).deserialize_first(&mut cx).unwrap();
+    let deserialized = Deserializer::from_str(&decompressed)
+        .deserialize_first(&mut cx)
+        .unwrap();
 
     Ok(deserialized)
 }
