@@ -52,6 +52,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "ssse3"))]
     fn scalar_and_sse_return_same_values() {
         let data: Vec<u8> = (0..=255).cycle().take(1024 * 30 + 3).collect();
 

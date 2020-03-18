@@ -37,6 +37,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "ssse3"))]
     fn scalar_and_sse_return_same_values() {
         let data: Vec<u8> = (b'0'..=b'9')
             .chain(b'a'..=b'z')
