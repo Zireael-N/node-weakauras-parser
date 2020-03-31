@@ -21,12 +21,28 @@ If you use something else, you will need [Rust](https://www.rust-lang.org/tools/
 
 ## Usage
 
+Non-blocking version:
+
+```javascript
+const parser = require('node-weakauras-parser');
+
+(async function() {
+    const source = { test: 1 };
+    const encoded = await parser.encode(source);
+    const decoded = await parser.decode(encoded);
+
+    console.log(JSON.stringify(source) === JSON.stringify(decoded));
+}());
+```
+
+Blocking version (slightly faster, but [blocks the event loop](https://nodejs.org/en/docs/guides/dont-block-the-event-loop/)):
+
 ```javascript
 const parser = require('node-weakauras-parser');
 
 const source = { test: 1 };
-const encoded = parser.encode(source);
-const decoded = parser.decode(encoded);
+const encoded = parser.encodeSync(source);
+const decoded = parser.decodeSync(encoded);
 
 console.log(JSON.stringify(source) === JSON.stringify(decoded));
 ```
@@ -36,12 +52,14 @@ Please note that when arrays are involved, encoding them is lossy:
 ```javascript
 const parser = require('node-weakauras-parser');
 
-const source = { test: [true, false] };
-const encoded = parser.encode(source);
-const decoded = parser.decode(encoded);
+(async function() {
+    const source = { test: [true, false] };
+    const encoded = await parser.encode(source);
+    const decoded = await parser.decode(encoded);
 
-// Prints "{ test: { 1: true, 2: false } }"
-console.log(decoded);
+    // Prints "{ test: { 1: true, 2: false } }"
+    console.log(decoded);
+}());
 ```
 
 ## License

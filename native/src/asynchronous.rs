@@ -1,0 +1,66 @@
+use neon::prelude::*;
+
+use super::common;
+use super::deserialization::Deserializer;
+use super::serialization::Serializer;
+
+use std::borrow::Cow;
+
+struct DecodeTask(String);
+impl Task for DecodeTask {
+    type Output = String;
+    type Error = &'static str;
+    type JsEvent = JsValue;
+
+    fn perform(&self) -> Result<Self::Output, Self::Error> {
+        let decompressed = common::decode_weakaura(&self.0)?;
+
+        // Avoid an unnecessary copy that would occur with Cow::into_owned():
+        Ok(match String::from_utf8_lossy(&decompressed) {
+            Cow::Owned(v) => v,
+            Cow::Borrowed(_) => unsafe { String::from_utf8_unchecked(decompressed) },
+        })
+    }
+
+    fn complete(self, mut cx: TaskContext, result: Result<Self::Output, Self::Error>) -> JsResult<Self::JsEvent> {
+        let deserialized = Deserializer::from_str(&result.unwrap())
+            .deserialize_first(&mut cx)
+            .unwrap();
+
+        Ok(deserialized)
+    }
+}
+
+struct EncodeTask(String);
+impl Task for EncodeTask {
+    type Output = String;
+    type Error = &'static str;
+    type JsEvent = JsString;
+
+    fn perform(&self) -> Result<Self::Output, Self::Error> {
+        common::encode_weakaura(&self.0)
+    }
+
+    fn complete(self, mut cx: TaskContext, result: Result<Self::Output, Self::Error>) -> JsResult<Self::JsEvent> {
+        Ok(cx.string(result.unwrap()))
+    }
+}
+
+pub fn decode_weakaura(mut cx: FunctionContext) -> JsResult<JsUndefined> {
+    let src = cx.argument::<JsString>(0)?.value();
+    let cb = cx.argument::<JsFunction>(1)?;
+
+    DecodeTask(src).schedule(cb);
+
+    Ok(cx.undefined())
+}
+
+pub fn encode_weakaura(mut cx: FunctionContext) -> JsResult<JsUndefined> {
+    let value = cx.argument::<JsValue>(0)?;
+    let cb = cx.argument::<JsFunction>(1)?;
+
+    let serialized = Serializer::serialize(&mut cx, value).unwrap();
+    EncodeTask(serialized).schedule(cb);
+
+    Ok(cx.undefined())
+}

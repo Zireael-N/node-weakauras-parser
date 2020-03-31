@@ -1,6 +1,6 @@
 [package]
 name = "node-weakauras-parser"
-version = "1.0.4"
+version = "2.0.0"
 authors = ["Velithris"]
 edition = "2018"
 license = "MIT"
@@ -8,15 +8,18 @@ build = "build.rs"
 exclude = ["artifacts.json", "index.node"]
 
 [lib]
-name = "neon_world"
+name = "node_weakauras_parser"
 crate-type = ["cdylib"]
 
 [profile.release]
 lto = true # increases compile time, decreases size of a binary
 
 [build-dependencies]
-neon-build = "0.3.3"
+# neon-build = "0.4.0"
+neon-build = { git = "https://github.com/neon-bindings/neon.git", rev = "20df99bedc13ee1bd7f4801a74920bd81ff099d7" }
 
 [dependencies]
-neon = "0.3.3"
+# prior to this commit, async tasks would crash the node process when using REPL:
+neon = { git = "https://github.com/neon-bindings/neon.git", rev = "20df99bedc13ee1bd7f4801a74920bd81ff099d7" }
+# neon = "0.4.0"
 flate2 = { version = "1.0.13", features = ["zlib"], default-features = false }

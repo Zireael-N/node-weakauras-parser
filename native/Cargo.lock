@@ -96,9 +96,8 @@ dependencies = [
 
 [[package]]
 name = "neon"
-version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "53b85accbbd250627f899a6fc1f220bbb4c8c2ff6dc71830dc6b752b39c2eb97"
+version = "0.4.0"
+source = "git+https://github.com/neon-bindings/neon.git?rev=20df99bedc13ee1bd7f4801a74920bd81ff099d7#20df99bedc13ee1bd7f4801a74920bd81ff099d7"
 dependencies = [
  "cslice",
  "neon-build",
@@ -108,9 +107,8 @@ dependencies = [
 
 [[package]]
 name = "neon-build"
-version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ae406bf1065c4399e69d328a3bd8d4f088f2a205dc3881bf68c0ac775bfef337"
+version = "0.4.0"
+source = "git+https://github.com/neon-bindings/neon.git?rev=20df99bedc13ee1bd7f4801a74920bd81ff099d7#20df99bedc13ee1bd7f4801a74920bd81ff099d7"
 dependencies = [
  "cfg-if",
  "neon-sys",
@@ -118,9 +116,8 @@ dependencies = [
 
 [[package]]
 name = "neon-runtime"
-version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d8465ac4ed3f340dead85e053b75a5f639f48ac6343b3523eff90a751758eead"
+version = "0.4.0"
+source = "git+https://github.com/neon-bindings/neon.git?rev=20df99bedc13ee1bd7f4801a74920bd81ff099d7#20df99bedc13ee1bd7f4801a74920bd81ff099d7"
 dependencies = [
  "cfg-if",
  "neon-sys",
@@ -128,9 +125,8 @@ dependencies = [
 
 [[package]]
 name = "neon-sys"
-version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ae4cf3871ca5a395077e68144c1754e94e9e1e3329e7f8399d999ca573ed89a"
+version = "0.4.0"
+source = "git+https://github.com/neon-bindings/neon.git?rev=20df99bedc13ee1bd7f4801a74920bd81ff099d7#20df99bedc13ee1bd7f4801a74920bd81ff099d7"
 dependencies = [
  "cc",
  "regex",
@@ -138,7 +134,7 @@ dependencies = [
 
 [[package]]
 name = "node-weakauras-parser"
-version = "1.0.4"
+version = "2.0.0"
 dependencies = [
  "flate2",
  "neon",
