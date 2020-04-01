@@ -68,7 +68,7 @@ where
             let mut result = String::with_capacity(len as usize * 6 + 4);
             result.push_str("^T");
             for i in 0..len {
-                let v = val.get(self.cx, i).unwrap();
+                let v = val.get(self.cx, i).map_err(|_| "failed to get property")?;
                 result.push_str(&format!("^N{}", i + 1));
                 check_recursion! {
                     result.push_str(&self.serialize_helper(v)?);
@@ -77,13 +77,15 @@ where
             result.push_str("^t");
             Ok(result)
         } else if let Ok(val) = value.downcast::<JsObject>() {
-            let properties = val.get_own_property_names(self.cx).unwrap();
+            let properties = val
+                .get_own_property_names(self.cx)
+                .map_err(|_| "failed to get properties")?;
             let len = properties.len();
             let mut result = String::with_capacity(len as usize * 6 + 4);
             result.push_str("^T");
             for i in 0..len {
-                let name = properties.get(self.cx, i).unwrap();
-                let value = val.get(self.cx, name).unwrap();
+                let name = properties.get(self.cx, i).map_err(|_| "failed to get property")?;
+                let value = val.get(self.cx, name).map_err(|_| "failed to get property")?;
                 check_recursion! {
                     result.push_str(&format!(
                         "{}{}",

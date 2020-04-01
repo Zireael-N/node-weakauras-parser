@@ -23,11 +23,15 @@ impl Task for DecodeTask {
     }
 
     fn complete(self, mut cx: TaskContext, result: Result<Self::Output, Self::Error>) -> JsResult<Self::JsEvent> {
-        let deserialized = Deserializer::from_str(&result.unwrap())
-            .deserialize_first(&mut cx)
-            .unwrap();
+        let result = result.or_else(|e| {
+            let e = cx.string(e);
+            cx.throw(e)
+        })?;
 
-        Ok(deserialized)
+        Deserializer::from_str(&result).deserialize_first(&mut cx).or_else(|e| {
+            let e = cx.string(e);
+            cx.throw(e)
+        })
     }
 }
 
@@ -42,7 +46,12 @@ impl Task for EncodeTask {
     }
 
     fn complete(self, mut cx: TaskContext, result: Result<Self::Output, Self::Error>) -> JsResult<Self::JsEvent> {
-        Ok(cx.string(result.unwrap()))
+        let result = result.or_else(|e| {
+            let e = cx.string(e);
+            cx.throw(e)
+        })?;
+
+        Ok(cx.string(result))
     }
 }
 
@@ -59,8 +68,13 @@ pub fn encode_weakaura(mut cx: FunctionContext) -> JsResult<JsUndefined> {
     let value = cx.argument::<JsValue>(0)?;
     let cb = cx.argument::<JsFunction>(1)?;
 
-    let serialized = Serializer::serialize(&mut cx, value).unwrap();
-    EncodeTask(serialized).schedule(cb);
-
-    Ok(cx.undefined())
+    Serializer::serialize(&mut cx, value)
+        .map(|serialized| {
+            EncodeTask(serialized).schedule(cb);
+            cx.undefined()
+        })
+        .or_else(|e| {
+            let e = cx.string(e);
+            cx.throw(e)
+        })
 }

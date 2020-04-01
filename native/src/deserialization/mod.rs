@@ -35,7 +35,7 @@ impl<'s> Deserializer<'s> {
 
         while self.reader.peek_identifier().is_ok() {
             if let Some(v) = self.deserialize_helper(cx)? {
-                result.set(cx, index, v).unwrap();
+                result.set(cx, index, v).map_err(|_| "failed to set property")?;
                 index += 1;
             }
         }
@@ -122,7 +122,7 @@ impl<'s> Deserializer<'s> {
                                     "^t" => return Err("unexpected end of a table"),
                                     _ => self.deserialize_helper(cx)?.ok_or("missing value")?,
                                 };
-                                result.set(cx, key, value).unwrap();
+                                result.set(cx, key, value).map_err(|_| "failed to set property")?;
                             }
                         }
                     }
