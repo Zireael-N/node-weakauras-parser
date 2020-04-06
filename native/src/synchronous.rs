@@ -1,25 +1,19 @@
 use neon::prelude::*;
 
 use super::common;
-use super::deserialization::Deserializer;
-use super::serialization::Serializer;
 
-pub fn decode_weakaura(mut cx: FunctionContext) -> JsResult<JsValue> {
+pub fn decode_weakaura(mut cx: FunctionContext) -> JsResult<JsString> {
     let src = cx.argument::<JsString>(0)?.value();
 
-    let decompressed = common::decode_weakaura(&src).or_else(|e| cx.throw_error(e))?;
-    let decompressed = String::from_utf8_lossy(&decompressed);
-
-    Deserializer::from_str(&decompressed)
-        .deserialize_first(&mut cx)
+    common::decode_weakaura(&src)
+        .map(|json| cx.string(json))
         .or_else(|e| cx.throw_error(e))
 }
 
 pub fn encode_weakaura(mut cx: FunctionContext) -> JsResult<JsString> {
-    let value = cx.argument::<JsValue>(0)?;
+    let json = cx.argument::<JsString>(0)?.value();
 
-    Serializer::serialize(&mut cx, value)
-        .and_then(|serialized| common::encode_weakaura(&serialized))
+    common::encode_weakaura(&json)
         .map(|result| cx.string(result))
         .or_else(|e| cx.throw_error(e))
 }

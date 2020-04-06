@@ -1,4 +1,6 @@
-use neon::prelude::*;
+use itoa;
+use ryu;
+use serde_json::Value;
 
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::unreadable_literal))]
 fn f64_to_parts(v: f64) -> (u64, i16, i8) {
@@ -14,33 +16,26 @@ fn f64_to_parts(v: f64) -> (u64, i16, i8) {
     (mantissa, exponent, sign)
 }
 
-pub struct Serializer<'c, 'v, C: Context<'v> + 'c> {
-    cx: &'c mut C,
+pub struct Serializer {
     remaining_depth: usize,
-    scratch: String,
-    marker: std::marker::PhantomData<&'v u8>,
+    result: String,
 }
 
-impl<'c, 'v, C> Serializer<'c, 'v, C>
-where
-    C: Context<'v> + 'c,
-{
-    pub fn serialize(cx: &'c mut C, value: Handle<'v, JsValue>) -> Result<String, &'static str> {
+impl Serializer {
+    pub fn serialize(value: &Value, approximate_len: Option<usize>) -> Result<String, &'static str> {
         let mut serializer = Self {
-            cx,
             remaining_depth: 128,
-            scratch: String::new(),
-            marker: std::marker::PhantomData,
+            result: String::with_capacity(approximate_len.unwrap_or(1024)),
         };
 
-        let mut result = String::with_capacity(4);
-        result.push_str("^1");
-        result.push_str(&serializer.serialize_helper(value)?);
-        result.push_str("^^");
-        Ok(result)
+        serializer.result.push_str("^1");
+        serializer.serialize_helper(value)?;
+        serializer.result.push_str("^^");
+
+        Ok(serializer.result)
     }
 
-    fn serialize_helper(&mut self, value: Handle<'v, JsValue>) -> Result<String, &'static str> {
+    fn serialize_helper(&mut self, value: &Value) -> Result<(), &'static str> {
         // Taken from serde_json
         macro_rules! check_recursion {
             ($($body:tt)*) => {
@@ -55,68 +50,80 @@ where
             }
         }
 
-        if value.is_a::<JsNull>() || value.is_a::<JsUndefined>() {
-            Ok("^Z".into())
-        } else if let Ok(val) = value.downcast::<JsBoolean>() {
-            Ok((if val.value() { "^B" } else { "^b" }).into())
-        } else if let Ok(val) = value.downcast::<JsString>() {
-            Ok(format!("^S{}", self.serialize_string(&val.value())))
-        } else if let Ok(val) = value.downcast::<JsNumber>() {
-            Self::serialize_number(val.value())
-        } else if let Ok(val) = value.downcast::<JsArray>() {
-            let len = val.len();
-            let mut result = String::with_capacity(len as usize * 6 + 4);
-            result.push_str("^T");
-            for i in 0..len {
-                let v = val.get(self.cx, i).map_err(|_| "failed to get property")?;
-                result.push_str(&format!("^N{}", i + 1));
-                check_recursion! {
-                    result.push_str(&self.serialize_helper(v)?);
-                }
+        match *value {
+            Value::Null => self.result.push_str("^Z"),
+            Value::Bool(b) => self.result.push_str(if b { "^B" } else { "^b" }),
+            Value::String(ref s) => {
+                self.result.push_str("^S");
+                self.serialize_string(s)
             }
-            result.push_str("^t");
-            Ok(result)
-        } else if let Ok(val) = value.downcast::<JsObject>() {
-            let properties = val
-                .get_own_property_names(self.cx)
-                .map_err(|_| "failed to get properties")?;
-            let len = properties.len();
-            let mut result = String::with_capacity(len as usize * 6 + 4);
-            result.push_str("^T");
-            for i in 0..len {
-                let name = properties.get(self.cx, i).map_err(|_| "failed to get property")?;
-                let value = val.get(self.cx, name).map_err(|_| "failed to get property")?;
-                check_recursion! {
-                    result.push_str(&format!(
-                        "{}{}",
-                        self.serialize_helper(name)?,
-                        self.serialize_helper(value)?,
-                    ));
+            Value::Number(ref n) => n
+                .as_f64()
+                .ok_or("failed to parse a number")
+                .and_then(|n| self.serialize_number(n))?,
+            Value::Array(ref vec) => {
+                self.result.reserve(vec.len() * 6 + 4);
+
+                self.result.push_str("^T");
+                for (i, v) in vec.iter().enumerate() {
+                    self.result.push_str("^N");
+                    itoa::fmt(&mut self.result, i + 1).map_err(|_| "failed writing to a string")?;
+                    check_recursion! {
+                        self.serialize_helper(v)?;
+                    }
                 }
+                self.result.push_str("^t");
             }
-            result.push_str("^t");
-            Ok(result)
-        } else {
-            Err("unsupported type")
+            Value::Object(ref m) => {
+                self.result.reserve(m.len() * 6 + 4);
+
+                self.result.push_str("^T");
+                for (key, value) in m.iter() {
+                    check_recursion! {
+                        self.result.push_str(if key.parse::<i32>().is_ok() { "^N" } else { "^S" });
+                        self.result.push_str(&key);
+                        self.serialize_helper(value)?;
+                    }
+                }
+                self.result.push_str("^t");
+            }
         }
+
+        Ok(())
     }
 
     #[cfg_attr(feature = "cargo-clippy", allow(clippy::float_cmp))]
-    fn serialize_number(value: f64) -> Result<String, &'static str> {
-        Ok(if value.is_nan() {
+    fn serialize_number(&mut self, value: f64) -> Result<(), &'static str> {
+        if value.is_nan() {
             return Err("AceSerializer does not support NaNs");
         } else if !value.is_finite() {
-            format!("^N{}", if value > 0.0 { "1.#INF" } else { "-1.#INF" })
-        } else if value.to_string().parse::<f64>().unwrap() == value {
-            format!("^N{}", value)
+            self.result.push_str("^N");
+            self.result.push_str(if value > 0.0 { "1.#INF" } else { "-1.#INF" })
         } else {
-            let (mantissa, exponent, sign) = f64_to_parts(value);
-            format!("^F{}{}^f{}", if sign < 0 { "-" } else { "" }, mantissa, exponent)
-        })
+            let mut buffer = ryu::Buffer::new();
+            let str_value = buffer.format_finite(value);
+
+            if str_value.parse::<f64>().unwrap() == value {
+                self.result.reserve(str_value.len() + 2);
+                self.result.push_str("^N");
+                self.result.push_str(str_value);
+            } else {
+                let (mantissa, exponent, sign) = f64_to_parts(value);
+                self.result.push_str("^F");
+                if sign < 0 {
+                    self.result.push_str("-");
+                }
+                itoa::fmt(&mut self.result, mantissa).map_err(|_| "failed writing to a string")?;
+                self.result.push_str("^f");
+                itoa::fmt(&mut self.result, exponent).map_err(|_| "failed writing to a string")?;
+            }
+        }
+
+        Ok(())
     }
 
-    fn serialize_string<'a>(&'a mut self, value: &'a str) -> &'a str {
-        self.scratch.clear();
+    fn serialize_string(&mut self, value: &str) {
+        self.result.reserve(value.len());
 
         let mut copy_from = 0;
         for (i, byte) in value.bytes().enumerate() {
@@ -129,20 +136,12 @@ where
                 _ => continue,
             };
 
-            if self.scratch.capacity() == 0 {
-                self.scratch.reserve(value.len() + 1);
-            }
-
-            self.scratch.push_str(&value[copy_from..i]);
-            self.scratch.push_str(&format!("~{}", replacement as char));
+            self.result.push_str(&value[copy_from..i]);
+            self.result.push('~');
+            self.result.push(replacement as char);
             copy_from = i + 1;
         }
 
-        if self.scratch.is_empty() {
-            value
-        } else {
-            self.scratch.push_str(&value[copy_from..]);
-            &self.scratch[..]
-        }
+        self.result.push_str(&value[copy_from..]);
     }
 }

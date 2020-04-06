@@ -1,4 +1,4 @@
-use neon::prelude::*;
+use serde_json::{map::Map, Number, Value};
 
 mod reader;
 use reader::StrReader;
@@ -18,10 +18,7 @@ impl<'s> Deserializer<'s> {
 
     /// Returns an array of deserialized values
     #[allow(dead_code)]
-    pub fn deserialize<'c, 'v, C: 'c>(mut self, cx: &'c mut C) -> Result<Handle<'v, JsValue>, &'static str>
-    where
-        C: Context<'v>,
-    {
+    pub fn deserialize(mut self) -> Result<Value, &'static str> {
         self.reader.read_identifier().and_then(|v| {
             if v == "^1" {
                 Ok(())
@@ -30,25 +27,20 @@ impl<'s> Deserializer<'s> {
             }
         })?;
 
-        let mut index = 0;
-        let result = cx.empty_array();
+        let mut result = Vec::new();
 
         while self.reader.peek_identifier().is_ok() {
-            if let Some(v) = self.deserialize_helper(cx)? {
-                result.set(cx, index, v).map_err(|_| "failed to set property")?;
-                index += 1;
+            if let Some(v) = self.deserialize_helper()? {
+                result.push(v);
             }
         }
 
-        Ok(result.as_value(cx))
+        Ok(Value::Array(result))
     }
 
     /// Returns the first deserialized value
     #[allow(dead_code)]
-    pub fn deserialize_first<'c, 'v, C: 'c>(mut self, cx: &'c mut C) -> Result<Handle<'v, JsValue>, &'static str>
-    where
-        C: Context<'v>,
-    {
+    pub fn deserialize_first(mut self) -> Result<Value, &'static str> {
         self.reader.read_identifier().and_then(|v| {
             if v == "^1" {
                 Ok(())
@@ -57,18 +49,15 @@ impl<'s> Deserializer<'s> {
             }
         })?;
 
-        let value = match self.deserialize_helper(cx)? {
+        let value = match self.deserialize_helper()? {
             Some(v) => v,
-            _ => cx.undefined().as_value(cx),
+            _ => Value::Null,
         };
 
         Ok(value)
     }
 
-    fn deserialize_helper<'c, 'v, C: 'c>(&mut self, cx: &'c mut C) -> Result<Option<Handle<'v, JsValue>>, &'static str>
-    where
-        C: Context<'v>,
-    {
+    fn deserialize_helper(&mut self) -> Result<Option<Value>, &'static str> {
         // Taken from serde_json
         macro_rules! check_recursion {
             ($($body:tt)*) => {
@@ -85,13 +74,16 @@ impl<'s> Deserializer<'s> {
 
         Ok(Some(match self.reader.read_identifier()? {
             "^^" => return Ok(None),
-            "^Z" => cx.null().as_value(cx),
-            "^B" => cx.boolean(true).as_value(cx),
-            "^b" => cx.boolean(false).as_value(cx),
-            "^S" => cx.string(self.reader.parse_str()?).as_value(cx),
-            "^N" => cx
-                .number(self.reader.read_until_next().and_then(Self::deserialize_number)?)
-                .as_value(cx),
+            "^Z" => Value::Null,
+            "^B" => Value::Bool(true),
+            "^b" => Value::Bool(false),
+            "^S" => Value::String(self.reader.parse_str()?.to_string()),
+            "^N" => Value::Number(
+                self.reader
+                    .read_until_next()
+                    .and_then(Self::deserialize_number)
+                    .and_then(|v| Number::from_f64(v).ok_or("failed to parse a number"))?,
+            ),
             "^F" => {
                 let mantissa = self
                     .reader
@@ -105,10 +97,10 @@ impl<'s> Deserializer<'s> {
                     _ => return Err("missing exponent"),
                 };
 
-                cx.number(mantissa * (2f64.powf(exponent))).as_value(cx)
+                Value::Number(Number::from_f64(mantissa * (2f64.powf(exponent))).ok_or("failed to parse a number")?)
             }
             "^T" => {
-                let result = JsObject::new(cx);
+                let mut result = Map::new();
                 loop {
                     match self.reader.peek_identifier()? {
                         "^t" => {
@@ -117,17 +109,24 @@ impl<'s> Deserializer<'s> {
                         }
                         _ => {
                             check_recursion! {
-                                let key = self.deserialize_helper(cx)?.ok_or("missing key")?;
+                                let key = self.deserialize_helper()?.ok_or("missing key").and_then(|key| match key {
+                                    Value::String(s) => Ok(s),
+                                    Value::Number(n) => n.as_f64().map(|v| v.to_string()).ok_or("failed to parse a number"),
+                                    Value::Bool(b) => Ok((if b { "true" } else { "false" }).into()),
+                                    _ => Err("unsupported key type for a map"),
+                                })?;
+
                                 let value = match self.reader.peek_identifier()? {
                                     "^t" => return Err("unexpected end of a table"),
-                                    _ => self.deserialize_helper(cx)?.ok_or("missing value")?,
+                                    _ => self.deserialize_helper()?.ok_or("missing value")?,
                                 };
-                                result.set(cx, key, value).map_err(|_| "failed to set property")?;
+
+                                result.insert(key, value);
                             }
                         }
                     }
                 }
-                result.as_value(cx)
+                Value::Object(result)
             }
             _ => return Err("invalid identifier"),
         }))
