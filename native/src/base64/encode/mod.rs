@@ -2,22 +2,21 @@ mod scalar;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "ssse3"))]
 mod sse;
 
+const OVERFLOW_ERROR: &str = "cannot calculate capacity without overflowing";
+
 #[inline(always)]
-fn calculate_capacity(data: &[u8]) -> Result<usize, &'static str> {
+fn calculate_capacity(data: &[u8]) -> Option<usize> {
     // Equivalent to (s.len() * 4 + 2) / 3 but avoids an early overflow
     let len = data.len();
     let leftover = len % 3;
 
-    (len / 3)
-        .checked_mul(4)
-        .and_then(|len| {
-            if leftover > 0 {
-                len.checked_add(leftover + 1)
-            } else {
-                Some(len)
-            }
-        })
-        .ok_or("cannot calculate capacity without overflowing")
+    (len / 3).checked_mul(4).and_then(|len| {
+        if leftover > 0 {
+            len.checked_add(leftover + 1)
+        } else {
+            Some(len)
+        }
+    })
 }
 
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "ssse3"))]
@@ -37,7 +36,11 @@ unsafe fn encode(data: &[u8], buf: &mut String) {
 /// Same as encode_raw() but prepends the output with "!"
 /// to reduce allocations.
 pub(crate) fn encode_weakaura(data: &[u8]) -> Result<String, &'static str> {
-    let mut result = String::with_capacity(calculate_capacity(data)? + 1);
+    let mut result = String::with_capacity(
+        calculate_capacity(data)
+            .and_then(|len| len.checked_add(1))
+            .ok_or(OVERFLOW_ERROR)?,
+    );
     result.push_str("!");
 
     unsafe {
@@ -48,7 +51,7 @@ pub(crate) fn encode_weakaura(data: &[u8]) -> Result<String, &'static str> {
 
 #[allow(dead_code)]
 pub(crate) fn encode_raw(data: &[u8]) -> Result<String, &'static str> {
-    let mut result = String::with_capacity(calculate_capacity(data)?);
+    let mut result = String::with_capacity(calculate_capacity(data).ok_or(OVERFLOW_ERROR)?);
 
     unsafe {
         encode(data, &mut result);
