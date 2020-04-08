@@ -1,0 +1,33 @@
+name: test
+on:
+  pull_request:
+  push:
+    branches:
+    - master
+jobs:
+  test:
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Checkout the repo
+      uses: actions/checkout@v2
+
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+        override: true
+        components: rustfmt, clippy
+
+    - name: Run tests
+      run: |
+        cd native && cargo test
+
+    - name: Check formatting
+      run: |
+        cd native && cargo fmt --all -- --check
+
+    - name: Check clippy warnings
+      run: |
+        cd native && cargo clippy -- -D warnings

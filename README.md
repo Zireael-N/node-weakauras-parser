@@ -8,16 +8,18 @@ npm install node-weakauras-parser
 yarn add node-weakauras-parser
 ```
 
-The package is pre-built for the following environments:
+The package is pre-built for the following environments ([Haswell](https://en.wikipedia.org/wiki/Haswell_(microarchitecture)) is used as the target arch):
 
-|          OS           | Node 8 | Node 10 | Node 12 | Node 13 |
-|-----------------------|--------|---------|---------|---------|
-|   Linux glibc (x64)   |   ✔️    |    ✔️    |    ✔️    |    ✔️    |
-| Linux musl-libc (x64) |   ✔️    |    ✔️    |    ✔️    |    ✔️    |
-|      macOS (x64)      |   ✔️    |    ✔️    |    ✔️    |    ✔️    |
-|     Windows (x64)     |   ✔️    |    ✔️    |    ✔️    |    ✔️    |
+|            OS            | Node 8 | Node 10 | Node 12 | Node 13 |
+|--------------------------|--------|---------|---------|---------|
+|   Linux glibc (x86_64)   |   ✔️    |    ✔️    |    ✔️    |    ✔️    |
+| Linux musl-libc (x86_64) |   ✔️    |    ✔️    |    ✔️    |    ✔️    |
+|      macOS (x86_64)      |   ✔️    |    ✔️    |    ✔️    |    ✔️    |
+|     Windows (x86_64)     |   ✔️    |    ✔️    |    ✔️    |    ✔️    |
 
 If you use something else, you will need [Rust](https://www.rust-lang.org/tools/install) and [zlib](https://www.zlib.net/) in order to build from source code.
+
+If you are getting [SIGILL](https://en.wikipedia.org/wiki/Signal_(IPC)#SIGILL), your CPU does not support some of the instructions that Haswell does. To fix that, you will have to build from source code.
 
 ## Usage
 
