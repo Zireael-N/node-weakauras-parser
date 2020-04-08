@@ -26,39 +26,53 @@ jobs:
         - build: ubuntu-node13
           os: ubuntu-18.04
           node: 13
+          env: { RUSTFLAGS: "-C target-cpu=haswell" }
         - build: ubuntu-node12
           os: ubuntu-18.04
           node: 12
+          env: { RUSTFLAGS: "-C target-cpu=haswell" }
         - build: ubuntu-node10
           os: ubuntu-18.04
           node: 10
+          env: { RUSTFLAGS: "-C target-cpu=haswell" }
         - build: ubuntu-node8
           os: ubuntu-18.04
           node: 8
+          env: { RUSTFLAGS: "-C target-cpu=haswell" }
+        # target-cpu=haswell causes libz_sys to fail compilation on macOS
         - build: macos-node13
           os: macos-latest
           node: 13
+          env: {}
         - build: macos-node12
           os: macos-latest
           node: 12
+          env: {}
         - build: macos-node10
           os: macos-latest
           node: 10
+          env: {}
         - build: macos-node8
           os: macos-latest
           node: 8
+          env: {}
         - build: windows-node13
           os: windows-2019
           node: 13
+          env: { RUSTFLAGS: "-C target-cpu=haswell" }
         - build: windows-node12
           os: windows-2019
           node: 12
+          env: { RUSTFLAGS: "-C target-cpu=haswell" }
         - build: windows-node10
           os: windows-2019
           node: 10
+          env: { RUSTFLAGS: "-C target-cpu=haswell" }
         - build: windows-node8
           os: windows-2019
           node: 8
+          env: { RUSTFLAGS: "-C target-cpu=haswell" }
+      fail-fast: false
 
     steps:
     - name: Checkout the repo
@@ -76,10 +90,13 @@ jobs:
         profile: minimal
         override: true
 
+    # Windows fails on `yarn exec` with "Couldn't find the binary neon", calling node directly
     - name: Build the binary
       shell: bash
+      env: ${{ matrix.env }}
       run: |
-        yarn
+        yarn --ignore-scripts
+        node node_modules/neon-cli/bin/cli.js build --release
 
         if which sha256sum; then
           SHA256="$(sha256sum native/index.node | awk '{ print $1 }')"
@@ -108,7 +125,7 @@ jobs:
 
     - name: Build the binary
       run: |
-        docker build --build-arg NODE_VERSION="${{ matrix.node }}" -t nwp:${{ matrix.node }} -f .github/workflows/Dockerfile .
+        docker build --build-arg NODE_VERSION="${{ matrix.node }}" --build-arg RUSTFLAGS="-C target-cpu=haswell -C target-feature=-crt-static" -t nwp:${{ matrix.node }} -f .github/workflows/Dockerfile .
 
     - name: Publish the binary
       shell: bash
