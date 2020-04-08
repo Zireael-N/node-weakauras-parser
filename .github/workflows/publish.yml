@@ -1,0 +1,116 @@
+name: publish
+on:
+  push:
+    tags:
+    - v[0-9]+.[0-9]+.[0-9]+
+jobs:
+  publish:
+    name: Publish ${{ matrix.build }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        build:
+        - ubuntu-node13
+        - ubuntu-node12
+        - ubuntu-node10
+        - ubuntu-node8
+        - macos-node13
+        - macos-node12
+        - macos-node10
+        - macos-node8
+        - windows-node13
+        - windows-node12
+        - windows-node10
+        - windows-node8
+        include:
+        - build: ubuntu-node13
+          os: ubuntu-18.04
+          node: 13
+        - build: ubuntu-node12
+          os: ubuntu-18.04
+          node: 12
+        - build: ubuntu-node10
+          os: ubuntu-18.04
+          node: 10
+        - build: ubuntu-node8
+          os: ubuntu-18.04
+          node: 8
+        - build: macos-node13
+          os: macos-latest
+          node: 13
+        - build: macos-node12
+          os: macos-latest
+          node: 12
+        - build: macos-node10
+          os: macos-latest
+          node: 10
+        - build: macos-node8
+          os: macos-latest
+          node: 8
+        - build: windows-node13
+          os: windows-2019
+          node: 13
+        - build: windows-node12
+          os: windows-2019
+          node: 12
+        - build: windows-node10
+          os: windows-2019
+          node: 10
+        - build: windows-node8
+          os: windows-2019
+          node: 8
+
+    steps:
+    - name: Checkout the repo
+      uses: actions/checkout@v2
+
+    - name: Install Node
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node }}
+
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+        override: true
+
+    - name: Build the binary
+      shell: bash
+      run: |
+        yarn
+
+        if which sha256sum; then
+          SHA256="$(sha256sum native/index.node | awk '{ print $1 }')"
+        elif which shasum; then # macOS
+          SHA256="$(shasum -a 256 native/index.node | awk '{ print $1 }')"
+        fi
+        echo "SHA256 of native/index.node: ${SHA256:-N/A}"
+
+    - name: Publish the binary
+      shell: bash
+      env:
+        NODE_PRE_GYP_GITHUB_TOKEN: ${{ secrets.NODE_PRE_GYP_GITHUB_TOKEN }}
+      run: |
+        rm -rf native/target && yarn upload-binary || exit 0
+
+  publish-alpine:
+    name: Publish alpine-node${{ matrix.node }}
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        node: [13, 12, 10, 8]
+
+    steps:
+    - name: Checkout the repo
+      uses: actions/checkout@v2
+
+    - name: Build the binary
+      run: |
+        docker build --build-arg NODE_VERSION="${{ matrix.node }}" -t nwp:${{ matrix.node }} -f .github/workflows/Dockerfile .
+
+    - name: Publish the binary
+      shell: bash
+      run: |
+        docker run --rm --env NODE_PRE_GYP_GITHUB_TOKEN="${{ secrets.NODE_PRE_GYP_GITHUB_TOKEN }}" nwp:${{ matrix.node }} yarn upload-binary || exit 0
