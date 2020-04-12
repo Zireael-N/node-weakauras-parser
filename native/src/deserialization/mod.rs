@@ -78,12 +78,15 @@ impl<'s> Deserializer<'s> {
             "^B" => Value::Bool(true),
             "^b" => Value::Bool(false),
             "^S" => Value::String(self.reader.parse_str()?.to_string()),
-            "^N" => Value::Number(
+            "^N" => {
                 self.reader
                     .read_until_next()
                     .and_then(Self::deserialize_number)
-                    .and_then(|v| Number::from_f64(v).ok_or("failed to parse a number"))?,
-            ),
+                    .map(|v| match Number::from_f64(v) {
+                        Some(v) => Value::Number(v),
+                        None => Value::Null,
+                    })?
+            }
             "^F" => {
                 let mantissa = self
                     .reader
@@ -97,7 +100,10 @@ impl<'s> Deserializer<'s> {
                     _ => return Err("missing exponent"),
                 };
 
-                Value::Number(Number::from_f64(mantissa * (2f64.powf(exponent))).ok_or("failed to parse a number")?)
+                match Number::from_f64(mantissa * 2f64.powf(exponent)) {
+                    Some(v) => Value::Number(v),
+                    None => Value::Null,
+                }
             }
             "^T" => {
                 let mut result = Map::new();

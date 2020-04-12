@@ -68,7 +68,7 @@ const parser = require('node-weakauras-parser');
 
 ### v3
 
-- `encode()` and `decode()` in v2 still spent majority of their time on the main thread, thus blocking the event loop. This is no longer the case but **undefined, Infinity and NaN are no longer supported**;
+- `encode()` and `decode()` in v2 still spent majority of their time on the main thread, thus blocking the event loop. This is no longer the case but **infinite numbers are no longer supported**;
 - Functions now return proper Error objects instead of strings.
 
 ### v2
