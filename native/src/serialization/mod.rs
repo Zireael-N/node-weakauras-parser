@@ -1,5 +1,3 @@
-use itoa;
-use ryu;
 use serde_json::Value;
 
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::unreadable_literal))]
