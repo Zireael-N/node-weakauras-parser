@@ -1,6 +1,6 @@
 {
   "name": "node-weakauras-parser",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Native module for node.js that does deserialization/serialization of WeakAuras' strings",
   "main": "lib/index.js",
   "author": "Velithris",

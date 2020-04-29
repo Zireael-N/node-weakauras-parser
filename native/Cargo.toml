@@ -1,6 +1,6 @@
 [package]
 name = "node-weakauras-parser"
-version = "1.0.7"
+version = "1.0.8"
 authors = ["Velithris"]
 edition = "2018"
 license = "MIT"
@@ -8,7 +8,7 @@ build = "build.rs"
 exclude = ["artifacts.json", "index.node"]
 
 [lib]
-name = "neon_world"
+name = "node_weakauras_parser"
 crate-type = ["cdylib"]
 
 [profile.release]
@@ -19,4 +19,4 @@ neon-build = "0.3.3"
 
 [dependencies]
 neon = "0.3.3"
-flate2 = { version = "1.0.13", features = ["zlib"], default-features = false }
+flate2 = { version = "1.0.14", features = ["cloudflare_zlib"], default-features = false }
