@@ -1,3 +1,5 @@
+use super::GENERIC_ERROR;
+
 #[derive(Clone)]
 pub(crate) struct TableEntry {
     pub(crate) code_length: u8,
@@ -35,6 +37,10 @@ pub(crate) fn build_lookup_table(codes: &[(u32, u8, u8)]) -> Result<Vec<TableEnt
     ];
 
     for &(mut code, mut code_len, symbol) in codes.iter() {
+        if code_len == 0 {
+            return Err(GENERIC_ERROR);
+        }
+
         let mut cursor = &mut lut;
         while code_len > 8 {
             let entry = &mut cursor[(code as u8) as usize];
@@ -52,11 +58,12 @@ pub(crate) fn build_lookup_table(codes: &[(u32, u8, u8)]) -> Result<Vec<TableEnt
             if let TableData::Reference(ref mut v) = entry.data {
                 cursor = v;
             } else {
-                return Err("compression error"); // two values have the same prefix
+                return Err(GENERIC_ERROR); // two values have the same prefix
             }
             code >>= 8;
             code_len -= 8;
         }
+
         if code_len < 8 {
             for prefix in 0..(1 << (8 - code_len)) {
                 let entry = &mut cursor[((prefix << code_len) | code as u8) as usize];
