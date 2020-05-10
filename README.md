@@ -64,6 +64,8 @@ const parser = require('node-weakauras-parser');
 }());
 ```
 
+Both `decode()` and `decodeSync()` accept an optional argument to configure the memory usage limit for decompression (in bytes). Default value is 8 MBs. You can pass `+Infinity` to disable it.
+
 ## Major changes
 
 ### v3
