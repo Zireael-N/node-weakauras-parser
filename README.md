@@ -46,6 +46,8 @@ const decoded = parser.decode(encoded);
 console.log(decoded);
 ```
 
+`decode()` accepts an optional argument to configure the memory usage limit for decompression (in bytes). Default value is 8 MBs. You can pass `+Infinity` to disable it.
+
 ## License
 
 The project is licensed under MIT License, unless stated otherwise in a source file.
