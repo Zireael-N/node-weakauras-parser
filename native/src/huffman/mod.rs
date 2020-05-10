@@ -13,7 +13,7 @@ use utils::{get_code, unescape_code};
 
 const GENERIC_ERROR: &str = "decompression error";
 
-pub(crate) fn decompress(bytes: &[u8]) -> Result<Cow<'_, [u8]>, &'static str> {
+pub(crate) fn decompress(bytes: &[u8], max_size: usize) -> Result<Cow<'_, [u8]>, &'static str> {
     let mut iter = bytes.iter();
     match iter.next() {
         Some(1) => return Ok(Cow::from(&bytes[1..])),
@@ -26,7 +26,7 @@ pub(crate) fn decompress(bytes: &[u8]) -> Result<Cow<'_, [u8]>, &'static str> {
         return Err("insufficient data");
     }
 
-    let num_symbols = iter.next().unwrap().checked_add(1).ok_or(GENERIC_ERROR)?;
+    let num_symbols = *iter.next().unwrap() as usize + 1;
 
     let original_size = iter
         .by_ref()
@@ -39,7 +39,11 @@ pub(crate) fn decompress(bytes: &[u8]) -> Result<Cow<'_, [u8]>, &'static str> {
         return Err("insufficient data");
     }
 
-    let mut codes = Vec::with_capacity(num_symbols as usize);
+    if original_size > max_size {
+        return Err("compressed data is too large");
+    }
+
+    let mut codes = Vec::with_capacity(num_symbols);
     let mut result = Vec::with_capacity(original_size);
 
     let mut bitfield = Bitfield::new();

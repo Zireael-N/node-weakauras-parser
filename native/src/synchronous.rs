@@ -6,8 +6,12 @@ use super::serialization::Serializer;
 
 pub fn decode_weakaura(mut cx: FunctionContext) -> JsResult<JsValue> {
     let src = cx.argument::<JsString>(0)?.value();
+    let max_size = match cx.argument_opt(1) {
+        Some(v) => common::transform_max_size(v, &mut cx),
+        None => Ok(Some(8 * 1024 * 1024)),
+    }?;
 
-    let decompressed = common::decode_weakaura(&src).or_else(|e| {
+    let decompressed = common::decode_weakaura(&src, max_size).or_else(|e| {
         let e = cx.string(e);
         cx.throw(e)
     })?;

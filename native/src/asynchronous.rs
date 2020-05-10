@@ -6,14 +6,14 @@ use super::serialization::Serializer;
 
 use std::borrow::Cow;
 
-struct DecodeTask(String);
+struct DecodeTask(String, Option<usize>);
 impl Task for DecodeTask {
     type Output = String;
     type Error = &'static str;
     type JsEvent = JsValue;
 
     fn perform(&self) -> Result<Self::Output, Self::Error> {
-        let decompressed = common::decode_weakaura(&self.0)?;
+        let decompressed = common::decode_weakaura(&self.0, self.1)?;
 
         // Avoid an unnecessary copy that would occur with Cow::into_owned():
         Ok(match String::from_utf8_lossy(&decompressed) {
@@ -57,9 +57,12 @@ impl Task for EncodeTask {
 
 pub fn decode_weakaura(mut cx: FunctionContext) -> JsResult<JsUndefined> {
     let src = cx.argument::<JsString>(0)?.value();
-    let cb = cx.argument::<JsFunction>(1)?;
+    let max_size = cx
+        .argument::<JsValue>(1)
+        .and_then(|v| common::transform_max_size(v, &mut cx))?;
+    let cb = cx.argument::<JsFunction>(2)?;
 
-    DecodeTask(src).schedule(cb);
+    DecodeTask(src, max_size).schedule(cb);
 
     Ok(cx.undefined())
 }
