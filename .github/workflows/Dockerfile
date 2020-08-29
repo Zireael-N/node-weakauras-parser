@@ -7,7 +7,7 @@ ENV RUSTUP_HOME=/usr/local/rustup \
 
 WORKDIR /app
 COPY . .
-RUN apk add --update --virtual build-deps g++ make zlib curl git python3 python2 \
+RUN apk add --update --virtual build-deps g++ make cmake zlib curl git python3 python2 \
     && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --profile=minimal -y \
     && yarn --ignore-scripts \
     && yarn exec -- neon build --release \
