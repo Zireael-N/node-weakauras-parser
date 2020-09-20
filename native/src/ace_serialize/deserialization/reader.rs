@@ -59,10 +59,10 @@ impl<'s> StrReader<'s> {
                     self.index += 2;
                     Ok(result)
                 }
-                _ => Err("not an identifier"),
+                _ => Err("Not an identifier"),
             }
         } else {
-            Err("unexpected EOF")
+            Err("Unexpected EOF")
         }
     }
 
@@ -74,10 +74,10 @@ impl<'s> StrReader<'s> {
                 (b'^', 0x00..=0x79) => {
                     Ok(unsafe { std::str::from_utf8_unchecked(&self.buffer[self.index..self.index + 2]) })
                 }
-                _ => Err("not an identifier"),
+                _ => Err("Not an identifier"),
             }
         } else {
-            Err("unexpected EOF")
+            Err("Unexpected EOF")
         }
     }
 
@@ -86,7 +86,7 @@ impl<'s> StrReader<'s> {
 
         loop {
             match self.peek() {
-                None => return Err("unexpected EOF"),
+                None => return Err("Unexpected EOF"),
                 Some(b'^') => {
                     // SAFETY: As long as `start` does not point at the middle
                     // of a multibyte character, this should be safe.
@@ -105,7 +105,7 @@ impl<'s> StrReader<'s> {
 
         loop {
             match self.peek() {
-                None => return Err("unexpected EOF"),
+                None => return Err("Unexpected EOF"),
                 Some(b'^') => {
                     if self.scratch.is_empty() {
                         // SAFETY: As long as `copy_from` does not point at the middle
@@ -130,7 +130,7 @@ impl<'s> StrReader<'s> {
                         Some(0x7B) => 0x7F,
                         Some(0x7C) => 0x7E,
                         Some(0x7D) => 0x5E,
-                        _ => return Err("invalid escape character"),
+                        _ => return Err("Invalid escape character"),
                         // _ => continue,
                     };
 

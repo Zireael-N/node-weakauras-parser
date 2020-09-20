@@ -46,7 +46,7 @@ where
             ($($body:tt)*) => {
                 self.remaining_depth -= 1;
                 if self.remaining_depth == 0 {
-                    return Err("recursion limit exceeded");
+                    return Err("Recursion limit exceeded");
                 }
 
                 $($body)*
@@ -95,7 +95,7 @@ where
             result.push_str("^t");
             Ok(result)
         } else {
-            Err("unsupported type")
+            Err("Unsupported type")
         }
     }
 

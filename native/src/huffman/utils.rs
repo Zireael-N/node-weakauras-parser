@@ -16,7 +16,7 @@ pub(crate) fn get_code(bitfield: &mut Bitfield) -> Result<Option<(u32, u8)>, &'s
                     bitfield.discard_bits(2);
                     Ok(Some((code, i)))
                 } else {
-                    Err("unsupported code length")
+                    Err("Unsupported code length")
                 };
             }
         }

@@ -9,7 +9,7 @@ fn calculate_capacity(s: &str) -> Result<usize, &'static str> {
 
     let leftover = len % 4;
     if leftover == 1 {
-        return Err("invalid base64 length");
+        return Err("Invalid base64 length");
     }
     let mut result = len / 4 * 3;
 
