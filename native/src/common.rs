@@ -5,8 +5,7 @@ use std::borrow::Cow;
 use super::base64;
 use super::huffman;
 
-use super::deserialization::Deserializer;
-use super::serialization::Serializer;
+use super::ace_serialize::{Deserializer, Serializer};
 
 pub fn transform_max_size<'a>(v: Handle<'a, JsValue>, cx: &'a mut FunctionContext) -> NeonResult<Option<usize>> {
     if v.downcast::<JsUndefined>().is_ok() {
@@ -19,7 +18,7 @@ pub fn transform_max_size<'a>(v: Handle<'a, JsValue>, cx: &'a mut FunctionContex
             } else if v.is_finite() {
                 Ok(Some(v.trunc() as usize))
             } else {
-                cx.throw_type_error("invalid value, expected a finite number or +Infinity")
+                cx.throw_type_error("Invalid value, expected a finite number or +Infinity")
             }
         })
     }
@@ -46,13 +45,13 @@ pub fn decode_weakaura(src: &str, max_size: Option<usize>) -> Result<String, &'s
 
         inflater
             .read_to_end(&mut result)
-            .map_err(|_| "decompression error")
+            .map_err(|_| "Decompression error")
             .and_then(|_| {
                 if result.len() < max_size {
                     Ok(())
                 } else {
                     match inflater.into_inner().bytes().next() {
-                        Some(_) => Err("compressed data is too large"),
+                        Some(_) => Err("Compressed data is too large"),
                         None => Ok(()),
                     }
                 }
@@ -62,12 +61,12 @@ pub fn decode_weakaura(src: &str, max_size: Option<usize>) -> Result<String, &'s
 
     Deserializer::from_str(&String::from_utf8_lossy(&decompressed))
         .deserialize_first()
-        .and_then(|deserialized| serde_json::to_string(&deserialized).map_err(|_| "failed to convert to JSON"))
+        .and_then(|deserialized| serde_json::to_string(&deserialized).map_err(|_| "Failed to convert to JSON"))
 }
 
 pub fn encode_weakaura(json: &str) -> Result<String, &'static str> {
     let serialized = serde_json::from_str(&json)
-        .map_err(|_| "failed to parse JSON")
+        .map_err(|_| "Failed to parse JSON")
         .and_then(|val| Serializer::serialize(&val, Some(json.len())))?;
 
     let compressed = {
@@ -80,7 +79,7 @@ pub fn encode_weakaura(json: &str) -> Result<String, &'static str> {
         deflater
             .read_to_end(&mut result)
             .map(|_| result)
-            .map_err(|_| "compression error")
+            .map_err(|_| "Compression error")
     }?;
 
     base64::encode_weakaura(&compressed)

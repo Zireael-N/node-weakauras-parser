@@ -39,7 +39,7 @@ impl Serializer {
             ($($body:tt)*) => {
                 self.remaining_depth -= 1;
                 if self.remaining_depth == 0 {
-                    return Err("recursion limit exceeded");
+                    return Err("Recursion limit exceeded");
                 }
 
                 $($body)*
@@ -57,7 +57,7 @@ impl Serializer {
             }
             Value::Number(ref n) => n
                 .as_f64()
-                .ok_or("failed to parse a number")
+                .ok_or("Failed to parse a number")
                 .and_then(|n| self.serialize_number(n))?,
             Value::Array(ref vec) => {
                 self.result.reserve(vec.len() * 6 + 4);
@@ -65,7 +65,7 @@ impl Serializer {
                 self.result.push_str("^T");
                 for (i, v) in vec.iter().enumerate() {
                     self.result.push_str("^N");
-                    itoa::fmt(&mut self.result, i + 1).map_err(|_| "failed writing to a string")?;
+                    itoa::fmt(&mut self.result, i + 1).map_err(|_| "Failed writing to a string")?;
                     check_recursion! {
                         self.serialize_helper(v)?;
                     }
@@ -111,9 +111,9 @@ impl Serializer {
                 if sign < 0 {
                     self.result.push_str("-");
                 }
-                itoa::fmt(&mut self.result, mantissa).map_err(|_| "failed writing to a string")?;
+                itoa::fmt(&mut self.result, mantissa).map_err(|_| "Failed writing to a string")?;
                 self.result.push_str("^f");
-                itoa::fmt(&mut self.result, exponent).map_err(|_| "failed writing to a string")?;
+                itoa::fmt(&mut self.result, exponent).map_err(|_| "Failed writing to a string")?;
             }
         }
 

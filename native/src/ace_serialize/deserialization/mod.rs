@@ -23,7 +23,7 @@ impl<'s> Deserializer<'s> {
             if v == "^1" {
                 Ok(())
             } else {
-                Err("supplied data is not AceSerializer data (rev 1)")
+                Err("Supplied data is not AceSerializer data (rev 1)")
             }
         })?;
 
@@ -45,7 +45,7 @@ impl<'s> Deserializer<'s> {
             if v == "^1" {
                 Ok(())
             } else {
-                Err("supplied data is not AceSerializer data (rev 1)")
+                Err("Supplied data is not AceSerializer data (rev 1)")
             }
         })?;
 
@@ -63,7 +63,7 @@ impl<'s> Deserializer<'s> {
             ($($body:tt)*) => {
                 self.remaining_depth -= 1;
                 if self.remaining_depth == 0 {
-                    return Err("recursion limit exceeded");
+                    return Err("Recursion limit exceeded");
                 }
 
                 $($body)*
@@ -91,13 +91,13 @@ impl<'s> Deserializer<'s> {
                 let mantissa = self
                     .reader
                     .read_until_next()
-                    .and_then(|v| v.parse::<f64>().map_err(|_| "failed to parse a number"))?;
+                    .and_then(|v| v.parse::<f64>().map_err(|_| "Failed to parse a number"))?;
                 let exponent = match self.reader.read_identifier()? {
                     "^f" => self
                         .reader
                         .read_until_next()
-                        .and_then(|v| v.parse::<f64>().map_err(|_| "failed to parse a number"))?,
-                    _ => return Err("missing exponent"),
+                        .and_then(|v| v.parse::<f64>().map_err(|_| "Failed to parse a number"))?,
+                    _ => return Err("Missing exponent"),
                 };
 
                 match Number::from_f64(mantissa * 2f64.powf(exponent)) {
@@ -115,16 +115,16 @@ impl<'s> Deserializer<'s> {
                         }
                         _ => {
                             check_recursion! {
-                                let key = self.deserialize_helper()?.ok_or("missing key").and_then(|key| match key {
+                                let key = self.deserialize_helper()?.ok_or("Missing key").and_then(|key| match key {
                                     Value::String(s) => Ok(s),
-                                    Value::Number(n) => n.as_f64().map(|v| v.to_string()).ok_or("failed to parse a number"),
+                                    Value::Number(n) => n.as_f64().map(|v| v.to_string()).ok_or("Failed to parse a number"),
                                     Value::Bool(b) => Ok((if b { "true" } else { "false" }).into()),
-                                    _ => Err("unsupported key type for a map"),
+                                    _ => Err("Unsupported type for an object key"),
                                 })?;
 
                                 let value = match self.reader.peek_identifier()? {
-                                    "^t" => return Err("unexpected end of a table"),
-                                    _ => self.deserialize_helper()?.ok_or("missing value")?,
+                                    "^t" => return Err("Unexpected end of a table"),
+                                    _ => self.deserialize_helper()?.ok_or("Missing value")?,
                                 };
 
                                 result.insert(key, value);
@@ -134,7 +134,7 @@ impl<'s> Deserializer<'s> {
                 }
                 Value::Object(result)
             }
-            _ => return Err("invalid identifier"),
+            _ => return Err("Invalid identifier"),
         }))
     }
 
@@ -142,7 +142,7 @@ impl<'s> Deserializer<'s> {
         match data {
             "1.#INF" | "inf" => Ok(std::f64::INFINITY),
             "-1.#INF" | "-inf" => Ok(std::f64::NEG_INFINITY),
-            v => v.parse().map_err(|_| "failed to parse a number"),
+            v => v.parse().map_err(|_| "Failed to parse a number"),
         }
     }
 }

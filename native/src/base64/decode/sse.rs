@@ -42,7 +42,7 @@ pub(crate) unsafe fn decode(s: &[u8], buf: &mut Vec<u8>) -> Result<(), &'static 
         let roll = _mm_shuffle_epi8(lut_roll, hi_nibbles);
 
         if _mm_testz_si128(lo, hi) == 0 {
-            return Err("failed to decode base64");
+            return Err("Failed to decode base64");
         }
 
         let merged = _mm_maddubs_epi16(_mm_add_epi8(src, roll), _mm_set1_epi32(0x40014001));
