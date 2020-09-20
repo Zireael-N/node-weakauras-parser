@@ -3,9 +3,17 @@ use neon::prelude::*;
 mod ace_serialize;
 mod base64;
 mod huffman;
+mod lib_serialize;
 
-use ace_serialize::{Deserializer, Serializer};
+use ace_serialize::{Deserializer as LegacyDeserializer, Serializer};
+use lib_serialize::Deserializer;
 use std::borrow::Cow;
+
+enum StringVersion {
+    Huffman,             // base64
+    Deflate,             // '!' + base64
+    BinarySerialization, // !WA:\d+! + base64
+}
 
 pub fn decode_weakaura(mut cx: FunctionContext) -> JsResult<JsValue> {
     let src = cx.argument::<JsString>(0)?.value();
@@ -29,14 +37,16 @@ pub fn decode_weakaura(mut cx: FunctionContext) -> JsResult<JsValue> {
         None => Ok(8 * 1024 * 1024),
     }?;
 
-    let (weakaura, legacy) = if src.starts_with('!') {
-        (&src[1..], false)
+    let (weakaura, version) = if src.starts_with("!WA:2!") {
+        (&src[6..], StringVersion::BinarySerialization)
+    } else if src.starts_with('!') {
+        (&src[1..], StringVersion::Deflate)
     } else {
-        (&src[..], true)
+        (&src[..], StringVersion::Huffman)
     };
 
     let decoded = base64::decode(weakaura).unwrap();
-    let decompressed = if legacy {
+    let decompressed = if let StringVersion::Huffman = version {
         huffman::decompress(&decoded, max_size).unwrap()
     } else {
         use flate2::read::DeflateDecoder;
@@ -61,13 +71,14 @@ pub fn decode_weakaura(mut cx: FunctionContext) -> JsResult<JsValue> {
             .map(|_| Cow::from(result))
             .unwrap()
     };
-    let decompressed = String::from_utf8_lossy(&decompressed);
 
-    let deserialized = Deserializer::from_str(&decompressed)
-        .deserialize_first(&mut cx)
-        .unwrap();
+    let deserialized = if let StringVersion::BinarySerialization = version {
+        Deserializer::from_slice(&decompressed).deserialize_first(&mut cx)
+    } else {
+        LegacyDeserializer::from_str(&String::from_utf8_lossy(&decompressed)).deserialize_first(&mut cx)
+    };
 
-    Ok(deserialized)
+    Ok(deserialized.unwrap())
 }
 
 pub fn encode_weakaura(mut cx: FunctionContext) -> JsResult<JsString> {
