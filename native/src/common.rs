@@ -5,6 +5,12 @@ use super::huffman;
 
 use std::borrow::Cow;
 
+pub enum StringVersion {
+    Huffman,             // base64
+    Deflate,             // '!' + base64
+    BinarySerialization, // !WA:\d+! + base64
+}
+
 pub fn transform_max_size<'a>(v: Handle<'a, JsValue>, cx: &'a mut FunctionContext) -> NeonResult<Option<usize>> {
     if v.downcast::<JsUndefined>().is_ok() {
         Ok(Some(8 * 1024 * 1024))
@@ -22,17 +28,20 @@ pub fn transform_max_size<'a>(v: Handle<'a, JsValue>, cx: &'a mut FunctionContex
     }
 }
 
-pub fn decode_weakaura(src: &str, max_size: Option<usize>) -> Result<Vec<u8>, &'static str> {
-    let (weakaura, legacy) = if src.starts_with('!') {
-        (&src[1..], false)
+pub fn decode_weakaura(src: &str, max_size: Option<usize>) -> Result<(Vec<u8>, StringVersion), &'static str> {
+    let (weakaura, version) = if src.starts_with("!WA:2!") {
+        (&src[6..], StringVersion::BinarySerialization)
+    } else if src.starts_with('!') {
+        (&src[1..], StringVersion::Deflate)
     } else {
-        (&src[..], true)
+        (&src[..], StringVersion::Huffman)
     };
 
     let decoded = base64::decode(weakaura)?;
 
     let max_size = max_size.unwrap_or(usize::MAX);
-    if legacy {
+
+    let bytes = if let StringVersion::Huffman = version {
         huffman::decompress(&decoded, max_size).map(Cow::into_owned)
     } else {
         use flate2::read::DeflateDecoder;
@@ -54,7 +63,9 @@ pub fn decode_weakaura(src: &str, max_size: Option<usize>) -> Result<Vec<u8>, &'
                     }
                 }
             })
-    }
+    };
+
+    bytes.map(|bytes| (bytes, version))
 }
 
 pub fn encode_weakaura(serialized: &str) -> Result<String, &'static str> {

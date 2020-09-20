@@ -1,33 +1,32 @@
 use neon::prelude::*;
 
-use super::common;
-use super::ace_serialize::{Deserializer, Serializer};
-
-use std::borrow::Cow;
+use super::ace_serialize::{Deserializer as LegacyDeserializer, Serializer};
+use super::common::{self, StringVersion};
+use super::lib_serialize::Deserializer;
 
 struct DecodeTask(String, Option<usize>);
 impl Task for DecodeTask {
-    type Output = String;
+    type Output = (Vec<u8>, StringVersion);
     type Error = &'static str;
     type JsEvent = JsValue;
 
     fn perform(&self) -> Result<Self::Output, Self::Error> {
-        let decompressed = common::decode_weakaura(&self.0, self.1)?;
-
-        // Avoid an unnecessary copy that would occur with Cow::into_owned():
-        Ok(match String::from_utf8_lossy(&decompressed) {
-            Cow::Owned(v) => v,
-            Cow::Borrowed(_) => unsafe { String::from_utf8_unchecked(decompressed) },
-        })
+        common::decode_weakaura(&self.0, self.1)
     }
 
     fn complete(self, mut cx: TaskContext, result: Result<Self::Output, Self::Error>) -> JsResult<Self::JsEvent> {
-        let result = result.or_else(|e| {
+        let (decompressed, version) = result.or_else(|e| {
             let e = cx.string(e);
             cx.throw(e)
         })?;
 
-        Deserializer::from_str(&result).deserialize_first(&mut cx).or_else(|e| {
+        let result = if let StringVersion::BinarySerialization = version {
+            Deserializer::from_slice(&decompressed).deserialize_first(&mut cx)
+        } else {
+            LegacyDeserializer::from_str(&String::from_utf8_lossy(&decompressed)).deserialize_first(&mut cx)
+        };
+
+        result.or_else(|e| {
             let e = cx.string(e);
             cx.throw(e)
         })
