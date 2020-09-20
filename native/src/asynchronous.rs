@@ -1,8 +1,7 @@
 use neon::prelude::*;
 
 use super::common;
-use super::deserialization::Deserializer;
-use super::serialization::Serializer;
+use super::ace_serialize::{Deserializer, Serializer};
 
 use std::borrow::Cow;
 

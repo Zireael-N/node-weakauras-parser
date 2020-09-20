@@ -1,8 +1,7 @@
 use neon::prelude::*;
 
 use super::common;
-use super::deserialization::Deserializer;
-use super::serialization::Serializer;
+use super::ace_serialize::{Deserializer, Serializer};
 
 pub fn decode_weakaura(mut cx: FunctionContext) -> JsResult<JsValue> {
     let src = cx.argument::<JsString>(0)?.value();

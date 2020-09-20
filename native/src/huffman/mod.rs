@@ -11,19 +11,19 @@ use lookup_table::{build_lookup_table, TableData};
 use std::borrow::Cow;
 use utils::{get_code, unescape_code};
 
-const GENERIC_ERROR: &str = "decompression error";
+const GENERIC_ERROR: &str = "Decompression error";
 
 pub(crate) fn decompress(bytes: &[u8], max_size: usize) -> Result<Cow<'_, [u8]>, &'static str> {
     let mut iter = bytes.iter();
     match iter.next() {
         Some(1) => return Ok(Cow::from(&bytes[1..])),
         Some(3) => (),
-        _ => return Err("unknown compression codec"),
+        _ => return Err("Unknown compression codec"),
     }
 
     let len = bytes.len();
     if len < 5 {
-        return Err("insufficient data");
+        return Err("Insufficient data");
     }
 
     let num_symbols = *iter.next().unwrap() as usize + 1;
@@ -36,11 +36,11 @@ pub(crate) fn decompress(bytes: &[u8], max_size: usize) -> Result<Cow<'_, [u8]>,
         .fold(0, |acc, (i, byte)| acc + (byte << (i * 8)));
 
     if original_size == 0 {
-        return Err("insufficient data");
+        return Err("Insufficient data");
     }
 
     if original_size > max_size {
-        return Err("compressed data is too large");
+        return Err("Compressed data is too large");
     }
 
     let mut codes = Vec::with_capacity(num_symbols);
@@ -53,11 +53,11 @@ pub(crate) fn decompress(bytes: &[u8], max_size: usize) -> Result<Cow<'_, [u8]>,
 
     // Code extraction:
     for _ in 0..num_symbols {
-        let symbol = bitfield.insert_and_extract_byte(*iter.next().ok_or("unexpected end of input")?);
+        let symbol = bitfield.insert_and_extract_byte(*iter.next().ok_or("Unexpected end of input")?);
 
         loop {
             bitfield
-                .insert(*iter.next().ok_or("unexpected end of input")?)
+                .insert(*iter.next().ok_or("Unexpected end of input")?)
                 .map_err(|_| GENERIC_ERROR)?;
 
             if let Some(v) = get_code(&mut bitfield)? {

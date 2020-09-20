@@ -1,9 +1,8 @@
 use neon::prelude::*;
 
+mod ace_serialize;
 mod base64;
-mod deserialization;
 mod huffman;
-mod serialization;
 
 mod asynchronous;
 mod common;

@@ -16,7 +16,7 @@ pub fn transform_max_size<'a>(v: Handle<'a, JsValue>, cx: &'a mut FunctionContex
             } else if v.is_finite() {
                 Ok(Some(v.trunc() as usize))
             } else {
-                cx.throw_type_error("invalid value, expected a finite number or +Infinity")
+                cx.throw_type_error("Invalid value, expected a finite number or +Infinity")
             }
         })
     }
@@ -43,13 +43,13 @@ pub fn decode_weakaura(src: &str, max_size: Option<usize>) -> Result<Vec<u8>, &'
 
         inflater
             .read_to_end(&mut result)
-            .map_err(|_| "decompression error")
+            .map_err(|_| "Decompression error")
             .and_then(|_| {
                 if result.len() < max_size {
                     Ok(result)
                 } else {
                     match inflater.into_inner().bytes().next() {
-                        Some(_) => Err("compressed data is too large"),
+                        Some(_) => Err("Compressed data is too large"),
                         None => Ok(result),
                     }
                 }
@@ -68,7 +68,7 @@ pub fn encode_weakaura(serialized: &str) -> Result<String, &'static str> {
         deflater
             .read_to_end(&mut result)
             .map(|_| result)
-            .map_err(|_| "compression error")
+            .map_err(|_| "Compression error")
     }?;
 
     base64::encode_weakaura(&compressed)
