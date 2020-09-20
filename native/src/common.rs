@@ -5,7 +5,14 @@ use std::borrow::Cow;
 use super::base64;
 use super::huffman;
 
-use super::ace_serialize::{Deserializer, Serializer};
+use super::ace_serialize::{Deserializer as LegacyDeserializer, Serializer};
+use super::lib_serialize::Deserializer;
+
+enum StringVersion {
+    Huffman,             // base64
+    Deflate,             // '!' + base64
+    BinarySerialization, // !WA:\d+! + base64
+}
 
 pub fn transform_max_size<'a>(v: Handle<'a, JsValue>, cx: &'a mut FunctionContext) -> NeonResult<Option<usize>> {
     if v.downcast::<JsUndefined>().is_ok() {
@@ -25,16 +32,18 @@ pub fn transform_max_size<'a>(v: Handle<'a, JsValue>, cx: &'a mut FunctionContex
 }
 
 pub fn decode_weakaura(src: &str, max_size: Option<usize>) -> Result<String, &'static str> {
-    let (weakaura, legacy) = if src.starts_with('!') {
-        (&src[1..], false)
+    let (weakaura, version) = if src.starts_with("!WA:2!") {
+        (&src[6..], StringVersion::BinarySerialization)
+    } else if src.starts_with('!') {
+        (&src[1..], StringVersion::Deflate)
     } else {
-        (&src[..], true)
+        (&src[..], StringVersion::Huffman)
     };
 
     let decoded = base64::decode(weakaura)?;
 
     let max_size = max_size.unwrap_or(usize::MAX);
-    let decompressed = if legacy {
+    let decompressed = if let StringVersion::Huffman = version {
         huffman::decompress(&decoded, max_size)
     } else {
         use flate2::read::DeflateDecoder;
@@ -59,9 +68,13 @@ pub fn decode_weakaura(src: &str, max_size: Option<usize>) -> Result<String, &'s
             .map(|_| Cow::from(result))
     }?;
 
-    Deserializer::from_str(&String::from_utf8_lossy(&decompressed))
-        .deserialize_first()
-        .and_then(|deserialized| serde_json::to_string(&deserialized).map_err(|_| "Failed to convert to JSON"))
+    let deserialized = if let StringVersion::BinarySerialization = version {
+        Deserializer::from_slice(&decompressed).deserialize_first()
+    } else {
+        LegacyDeserializer::from_str(&String::from_utf8_lossy(&decompressed)).deserialize_first()
+    }?;
+
+    serde_json::to_string(&deserialized).map_err(|_| "Failed to convert to JSON")
 }
 
 pub fn encode_weakaura(json: &str) -> Result<String, &'static str> {
