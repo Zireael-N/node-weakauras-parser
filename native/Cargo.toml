@@ -1,6 +1,6 @@
 [package]
 name = "node-weakauras-parser"
-version = "3.0.9"
+version = "3.1.0"
 authors = ["Velithris"]
 edition = "2018"
 license = "MIT"
@@ -26,3 +26,4 @@ flate2 = { version = "1.0.17", features = ["zlib-ng-compat"], default-features =
 serde_json = { version = "1.0.57", features = ["preserve_order"] }
 ryu = "1.0.5"
 itoa = "0.4.6"
+indexmap = "1.6.0"

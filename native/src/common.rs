@@ -5,8 +5,8 @@ use std::borrow::Cow;
 use super::base64;
 use super::huffman;
 
-use super::ace_serialize::{Deserializer as LegacyDeserializer, Serializer};
-use super::lib_serialize::Deserializer;
+use super::ace_serialize::Deserializer as LegacyDeserializer;
+use super::lib_serialize::{Deserializer, Serializer};
 
 enum StringVersion {
     Huffman,             // base64
@@ -80,14 +80,14 @@ pub fn decode_weakaura(src: &str, max_size: Option<usize>) -> Result<String, &'s
 pub fn encode_weakaura(json: &str) -> Result<String, &'static str> {
     let serialized = serde_json::from_str(&json)
         .map_err(|_| "Failed to parse JSON")
-        .and_then(|val| Serializer::serialize(&val, Some(json.len())))?;
+        .and_then(|val| Serializer::serialize(val, Some(json.len())))?;
 
     let compressed = {
         use flate2::{read::DeflateEncoder, Compression};
         use std::io::prelude::*;
 
         let mut result = Vec::new();
-        let mut deflater = DeflateEncoder::new(serialized.as_bytes(), Compression::best());
+        let mut deflater = DeflateEncoder::new(serialized.as_slice(), Compression::best());
 
         deflater
             .read_to_end(&mut result)

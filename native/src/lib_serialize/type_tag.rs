@@ -7,7 +7,6 @@ pub(crate) enum EmbeddedTypeTag {
     Mixed = 3,
 }
 
-#[allow(dead_code)]
 impl EmbeddedTypeTag {
     pub(crate) fn from_u8(v: u8) -> Option<Self> {
         if v <= 3 {
@@ -71,7 +70,6 @@ pub(crate) enum TypeTag {
     MapRef24 = 31,
 }
 
-#[allow(dead_code)]
 impl TypeTag {
     pub(crate) fn from_u8(v: u8) -> Option<Self> {
         if v <= 31 {
