@@ -49,21 +49,6 @@ const decoded = parser.decodeSync(encoded);
 console.log(JSON.stringify(source) === JSON.stringify(decoded));
 ```
 
-Please note that when arrays are involved, encoding them is lossy:
-
-```javascript
-const parser = require('node-weakauras-parser');
-
-(async function() {
-    const source = { test: [true, false] };
-    const encoded = await parser.encode(source);
-    const decoded = await parser.decode(encoded);
-
-    // Prints "{ test: { 1: true, 2: false } }"
-    console.log(decoded);
-}());
-```
-
 Both `decode()` and `decodeSync()` accept an optional argument to configure the memory usage limit for decompression (in bytes). Default value is 8 MBs. You can pass `+Infinity` to disable it.
 
 ## Major changes

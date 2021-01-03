@@ -57,6 +57,7 @@ impl<'s> Deserializer<'s> {
         Ok(value)
     }
 
+    #[cfg_attr(feature = "cargo-clippy", allow(clippy::float_cmp))]
     fn deserialize_helper(&mut self) -> Result<Option<Value>, &'static str> {
         // Taken from serde_json
         macro_rules! check_recursion {
@@ -106,7 +107,9 @@ impl<'s> Deserializer<'s> {
                 }
             }
             "^T" => {
-                let mut result = Map::new();
+                let mut keys = Vec::with_capacity(16);
+                let mut values = Vec::with_capacity(16);
+
                 loop {
                     match self.reader.peek_identifier()? {
                         "^t" => {
@@ -115,24 +118,44 @@ impl<'s> Deserializer<'s> {
                         }
                         _ => {
                             check_recursion! {
-                                let key = self.deserialize_helper()?.ok_or("Missing key").and_then(|key| match key {
-                                    Value::String(s) => Ok(s),
-                                    Value::Number(n) => n.as_f64().map(|v| v.to_string()).ok_or("Failed to parse a number"),
-                                    Value::Bool(b) => Ok((if b { "true" } else { "false" }).into()),
-                                    _ => Err("Unsupported type for an object key"),
-                                })?;
-
+                                let key = self.deserialize_helper()?.ok_or("Missing key")?;
                                 let value = match self.reader.peek_identifier()? {
                                     "^t" => return Err("Unexpected end of a table"),
                                     _ => self.deserialize_helper()?.ok_or("Missing value")?,
                                 };
 
-                                result.insert(key, value);
+                                keys.push(key);
+                                values.push(value);
                             }
                         }
                     }
                 }
-                Value::Object(result)
+
+                debug_assert_eq!(keys.len(), values.len());
+                let is_array = keys.iter().zip(1usize..).all(|(el, i)| {
+                    if let Value::Number(el) = el {
+                        el.as_f64().map(|el| el == i as f64).unwrap_or(false)
+                    } else {
+                        false
+                    }
+                });
+
+                if is_array {
+                    Value::Array(values)
+                } else {
+                    let mut result = Map::with_capacity(keys.len());
+                    for (key, value) in keys.into_iter().zip(values.into_iter()) {
+                        let key = match key {
+                            Value::String(s) => Ok(s),
+                            Value::Number(n) => n.as_f64().map(|v| v.to_string()).ok_or("Failed to parse a number"),
+                            Value::Bool(b) => Ok((if b { "true" } else { "false" }).into()),
+                            _ => Err("Unsupported type for an object key"),
+                        }?;
+
+                        result.insert(key, value);
+                    }
+                    Value::Object(result)
+                }
             }
             _ => return Err("Invalid identifier"),
         }))
