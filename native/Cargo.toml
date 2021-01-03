@@ -1,6 +1,6 @@
 [package]
 name = "node-weakauras-parser"
-version = "3.1.1"
+version = "3.1.2"
 authors = ["Velithris"]
 edition = "2018"
 license = "MIT"
@@ -15,13 +15,11 @@ crate-type = ["cdylib"]
 lto = true # increases compile time, decreases size of a binary
 
 [build-dependencies]
-# neon-build = "0.4.0"
-neon-build = { git = "https://github.com/neon-bindings/neon.git", rev = "20df99bedc13ee1bd7f4801a74920bd81ff099d7" }
+neon-build = "0.6.0"
 
 [dependencies]
-# prior to this commit, async tasks would crash the node process when using REPL:
-neon = { git = "https://github.com/neon-bindings/neon.git", rev = "20df99bedc13ee1bd7f4801a74920bd81ff099d7" }
-# neon = "0.4.0"
+neon = "0.6.0"
+# neon = { version = "0.6.0", features = ["napi-runtime"], default-features = false } # trait Task is not implemented for napi-runtime
 flate2 = { version = "1.0.19", features = ["zlib-ng-compat"], default-features = false }
 serde_json = { version = "1.0.61", features = ["preserve_order"] }
 ryu = "1.0.5"
