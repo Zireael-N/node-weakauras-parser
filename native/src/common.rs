@@ -29,10 +29,10 @@ pub fn transform_max_size<'a>(v: Handle<'a, JsValue>, cx: &'a mut FunctionContex
 }
 
 pub fn decode_weakaura(src: &str, max_size: Option<usize>) -> Result<(Vec<u8>, StringVersion), &'static str> {
-    let (weakaura, version) = if src.starts_with("!WA:2!") {
-        (&src[6..], StringVersion::BinarySerialization)
-    } else if src.starts_with('!') {
-        (&src[1..], StringVersion::Deflate)
+    let (weakaura, version) = if let Some(src) = src.strip_prefix("!WA:2!") {
+        (src, StringVersion::BinarySerialization)
+    } else if let Some(src) = src.strip_prefix("!") {
+        (src, StringVersion::Deflate)
     } else {
         (&src[..], StringVersion::Huffman)
     };
