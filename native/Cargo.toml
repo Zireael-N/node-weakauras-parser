@@ -1,6 +1,6 @@
 [package]
 name = "node-weakauras-parser"
-version = "1.0.12"
+version = "1.0.13"
 authors = ["Velithris"]
 edition = "2018"
 license = "MIT"
@@ -19,4 +19,4 @@ neon-build = "0.3.3"
 
 [dependencies]
 neon = "0.3.3"
-flate2 = { version = "1.0.17", features = ["zlib-ng-compat"], default-features = false }
+flate2 = { version = "1.0.19", features = ["zlib-ng-compat"], default-features = false }

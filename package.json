@@ -1,6 +1,6 @@
 {
   "name": "node-weakauras-parser",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Native module for Node.js that does deserialization/serialization of WeakAuras' strings",
   "keywords": ["World of Warcraft", "WoW", "WeakAuras", "WA"],
   "main": "lib/index.js",
