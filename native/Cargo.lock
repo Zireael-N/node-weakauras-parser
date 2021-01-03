@@ -112,37 +112,42 @@ dependencies = [
 
 [[package]]
 name = "neon"
-version = "0.4.0"
-source = "git+https://github.com/neon-bindings/neon.git?rev=20df99bedc13ee1bd7f4801a74920bd81ff099d7#20df99bedc13ee1bd7f4801a74920bd81ff099d7"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ade23143c81b3d3e7648521e06f63d6ce055059e5280451282f16b61fadd99b0"
 dependencies = [
  "cslice",
  "neon-build",
  "neon-runtime",
  "semver",
+ "smallvec",
 ]
 
 [[package]]
 name = "neon-build"
-version = "0.4.0"
-source = "git+https://github.com/neon-bindings/neon.git?rev=20df99bedc13ee1bd7f4801a74920bd81ff099d7#20df99bedc13ee1bd7f4801a74920bd81ff099d7"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eba1f19760f7447f7c29873d66afc7bdb44c9bfdb09bb2abf08af85c8af1cb18"
 dependencies = [
- "cfg-if 0.1.10",
  "neon-sys",
 ]
 
 [[package]]
 name = "neon-runtime"
-version = "0.4.0"
-source = "git+https://github.com/neon-bindings/neon.git?rev=20df99bedc13ee1bd7f4801a74920bd81ff099d7#20df99bedc13ee1bd7f4801a74920bd81ff099d7"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bcddb16d2645a7fa148c87b61555b21c9c5b926b842df93a0a46f8be342f8733"
 dependencies = [
  "cfg-if 0.1.10",
  "neon-sys",
+ "smallvec",
 ]
 
 [[package]]
 name = "neon-sys"
-version = "0.4.0"
-source = "git+https://github.com/neon-bindings/neon.git?rev=20df99bedc13ee1bd7f4801a74920bd81ff099d7#20df99bedc13ee1bd7f4801a74920bd81ff099d7"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d4cb0f36c7a8579d305e24efaa4945c85f636b0125c0ea0cf594ca43b6624736"
 dependencies = [
  "cc",
  "regex",
@@ -150,7 +155,7 @@ dependencies = [
 
 [[package]]
 name = "node-weakauras-parser"
-version = "2.0.10"
+version = "2.0.11"
 dependencies = [
  "flate2",
  "neon",
@@ -195,6 +200,12 @@ name = "semver-parser"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
+
+[[package]]
+name = "smallvec"
+version = "1.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1a55ca5f3b68e41c979bf8c46a6f1da892ca4db8f94023ce0bd32407573b1ac0"
 
 [[package]]
 name = "thread_local"

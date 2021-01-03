@@ -10,7 +10,7 @@ yarn add node-weakauras-parser
 
 The package is pre-built for the following environments ([Haswell](https://en.wikipedia.org/wiki/Haswell_(microarchitecture)) is used as the target arch):
 
-|            OS            | Node 10 | Node 12 | Node 13 | Node 14 |
+|            OS            | Node 10 | Node 12 | Node 14 | Node 15 |
 |--------------------------|---------|---------|---------|---------|
 |   Linux glibc (x86_64)   |    ✔️    |    ✔️    |    ✔️    |    ✔️    |
 | Linux musl-libc (x86_64) |    ✔️    |    ✔️    |    ✔️    |    ✔️    |
