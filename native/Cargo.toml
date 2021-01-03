@@ -1,6 +1,6 @@
 [package]
 name = "node-weakauras-parser"
-version = "2.0.9"
+version = "2.0.10"
 authors = ["Velithris"]
 edition = "2018"
 license = "MIT"
@@ -22,4 +22,4 @@ neon-build = { git = "https://github.com/neon-bindings/neon.git", rev = "20df99b
 # prior to this commit, async tasks would crash the node process when using REPL:
 neon = { git = "https://github.com/neon-bindings/neon.git", rev = "20df99bedc13ee1bd7f4801a74920bd81ff099d7" }
 # neon = "0.4.0"
-flate2 = { version = "1.0.17", features = ["zlib-ng-compat"], default-features = false }
+flate2 = { version = "1.0.19", features = ["zlib-ng-compat"], default-features = false }

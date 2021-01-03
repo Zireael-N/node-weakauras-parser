@@ -65,6 +65,7 @@ impl<'s> Deserializer<'s> {
         Ok(value)
     }
 
+    #[cfg_attr(feature = "cargo-clippy", allow(clippy::float_cmp))]
     fn deserialize_helper<'c, 'v, C: 'c>(&mut self, cx: &'c mut C) -> Result<Option<Handle<'v, JsValue>>, &'static str>
     where
         C: Context<'v>,
@@ -108,7 +109,9 @@ impl<'s> Deserializer<'s> {
                 cx.number(mantissa * (2f64.powf(exponent))).as_value(cx)
             }
             "^T" => {
-                let result = JsObject::new(cx);
+                let mut keys = Vec::with_capacity(16);
+                let mut values = Vec::with_capacity(16);
+
                 loop {
                     match self.reader.peek_identifier()? {
                         "^t" => {
@@ -122,12 +125,41 @@ impl<'s> Deserializer<'s> {
                                     "^t" => return Err("Unexpected end of a table"),
                                     _ => self.deserialize_helper(cx)?.ok_or("Missing value")?,
                                 };
-                                result.set(cx, key, value).map_err(|_| "Failed to set property")?;
+
+                                keys.push(key);
+                                values.push(value);
                             }
                         }
                     }
                 }
-                result.as_value(cx)
+
+                debug_assert_eq!(keys.len(), values.len());
+                let is_array = values.len() <= (u32::MAX as usize)
+                    && keys.iter().enumerate().all(|(index, key)| {
+                        if let Ok(key) = key.downcast::<JsNumber>() {
+                            key.value() == (index + 1) as f64
+                        } else {
+                            false
+                        }
+                    });
+
+                if is_array {
+                    let result = JsArray::new(cx, values.len() as u32);
+
+                    for (value, index) in values.into_iter().zip(0u32..) {
+                        result.set(cx, index, value).map_err(|_| "Failed to set property")?;
+                    }
+
+                    result.as_value(cx)
+                } else {
+                    let result = JsObject::new(cx);
+
+                    for (key, value) in keys.into_iter().zip(values.into_iter()) {
+                        result.set(cx, key, value).map_err(|_| "Failed to set property")?;
+                    }
+
+                    result.as_value(cx)
+                }
             }
             _ => return Err("Invalid identifier"),
         }))
