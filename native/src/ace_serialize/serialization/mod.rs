@@ -55,16 +55,17 @@ where
             }
         }
 
-        if value.is_a::<JsNull>() || value.is_a::<JsUndefined>() {
+        if value.is_a::<JsNull, C>(self.cx) || value.is_a::<JsUndefined, C>(self.cx) {
             Ok("^Z".into())
-        } else if let Ok(val) = value.downcast::<JsBoolean>() {
-            Ok((if val.value() { "^B" } else { "^b" }).into())
-        } else if let Ok(val) = value.downcast::<JsString>() {
-            Ok(format!("^S{}", self.serialize_string(&val.value())))
-        } else if let Ok(val) = value.downcast::<JsNumber>() {
-            Self::serialize_number(val.value())
-        } else if let Ok(val) = value.downcast::<JsArray>() {
-            let len = val.len();
+        } else if let Ok(val) = value.downcast::<JsBoolean, C>(self.cx) {
+            Ok((if val.value(self.cx) { "^B" } else { "^b" }).into())
+        } else if let Ok(val) = value.downcast::<JsString, C>(self.cx) {
+            let value = val.value(self.cx);
+            Ok(format!("^S{}", self.serialize_string(&value)))
+        } else if let Ok(val) = value.downcast::<JsNumber, C>(self.cx) {
+            Self::serialize_number(val.value(self.cx))
+        } else if let Ok(val) = value.downcast::<JsArray, C>(self.cx) {
+            let len = val.len(self.cx);
             let mut result = String::with_capacity(len as usize * 6 + 4);
             result.push_str("^T");
             for i in 0..len {
@@ -76,9 +77,9 @@ where
             }
             result.push_str("^t");
             Ok(result)
-        } else if let Ok(val) = value.downcast::<JsObject>() {
+        } else if let Ok(val) = value.downcast::<JsObject, C>(self.cx) {
             let properties = val.get_own_property_names(self.cx).unwrap();
-            let len = properties.len();
+            let len = properties.len(self.cx);
             let mut result = String::with_capacity(len as usize * 6 + 4);
             result.push_str("^T");
             for i in 0..len {

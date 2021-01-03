@@ -16,14 +16,14 @@ enum StringVersion {
 }
 
 pub fn decode_weakaura(mut cx: FunctionContext) -> JsResult<JsValue> {
-    let src = cx.argument::<JsString>(0)?.value();
+    let src = cx.argument::<JsString>(0)?.value(&mut cx);
     let max_size = match cx.argument_opt(1) {
         Some(v) => {
-            if v.downcast::<JsUndefined>().is_ok() {
+            if v.downcast::<JsUndefined, FunctionContext>(&mut cx).is_ok() {
                 Ok(8 * 1024 * 1024)
             } else {
                 v.downcast_or_throw::<JsNumber, FunctionContext>(&mut cx).and_then(|v| {
-                    let v = v.value();
+                    let v = v.value(&mut cx);
                     if v == f64::INFINITY {
                         Ok(usize::MAX)
                     } else if v.is_finite() {

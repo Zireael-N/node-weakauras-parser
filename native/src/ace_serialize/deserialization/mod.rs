@@ -134,13 +134,14 @@ impl<'s> Deserializer<'s> {
                 }
 
                 debug_assert_eq!(keys.len(), values.len());
-                let is_array = values.len() <= (u32::MAX as usize) && keys.iter().enumerate().all(|(index, key)| {
-                    if let Ok(key) = key.downcast::<JsNumber>() {
-                        key.value() == (index + 1) as f64
-                    } else {
-                        false
-                    }
-                });
+                let is_array = values.len() <= (u32::MAX as usize)
+                    && keys.iter().enumerate().all(|(index, key)| {
+                        if let Ok(key) = key.downcast::<JsNumber, C>(cx) {
+                            key.value(cx) == (index + 1) as f64
+                        } else {
+                            false
+                        }
+                    });
 
                 if is_array {
                     let result = JsArray::new(cx, values.len() as u32);

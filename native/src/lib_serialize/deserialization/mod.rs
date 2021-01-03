@@ -57,7 +57,8 @@ impl<'s, 'v> Deserializer<'s, 'v> {
             _ => return Err("Invalid serialized data"),
         }
 
-        self.deserialize_helper(cx).map(|result| result.unwrap_or_else(|| cx.undefined().as_value(cx)))
+        self.deserialize_helper(cx)
+            .map(|result| result.unwrap_or_else(|| cx.undefined().as_value(cx)))
     }
 
     fn deserialize_helper<'c, C: 'c>(&mut self, cx: &'c mut C) -> Result<Option<Handle<'v, JsValue>>, &'static str>
@@ -113,7 +114,12 @@ impl<'s, 'v> Deserializer<'s, 'v> {
         }
     }
 
-    fn deserialize_embedded<'c, C: 'c>(&mut self, tag: EmbeddedTypeTag, len: u8, cx: &'c mut C) -> Result<Handle<'v, JsValue>, &'static str>
+    fn deserialize_embedded<'c, C: 'c>(
+        &mut self,
+        tag: EmbeddedTypeTag,
+        len: u8,
+        cx: &'c mut C,
+    ) -> Result<Handle<'v, JsValue>, &'static str>
     where
         C: Context<'v>,
     {
@@ -363,7 +369,12 @@ impl<'s, 'v> Deserializer<'s, 'v> {
         Ok(v)
     }
 
-    fn deserialize_mixed<'c, C: 'c>(&mut self, array_len: usize, map_len: usize, cx: &'c mut C) -> Result<Handle<'v, JsValue>, &'static str>
+    fn deserialize_mixed<'c, C: 'c>(
+        &mut self,
+        array_len: usize,
+        map_len: usize,
+        cx: &'c mut C,
+    ) -> Result<Handle<'v, JsValue>, &'static str>
     where
         C: Context<'v>,
     {

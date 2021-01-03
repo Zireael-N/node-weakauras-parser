@@ -1,6 +1,6 @@
 [package]
 name = "node-weakauras-parser"
-version = "1.0.13"
+version = "1.0.14"
 authors = ["Velithris"]
 edition = "2018"
 license = "MIT"
@@ -15,8 +15,8 @@ crate-type = ["cdylib"]
 lto = true # increases compile time, decreases size of a binary
 
 [build-dependencies]
-neon-build = "0.3.3"
+neon-build = "0.6.0"
 
 [dependencies]
-neon = "0.3.3"
+neon = { version = "0.6.0", features = ["napi-runtime"], default-features = false }
 flate2 = { version = "1.0.19", features = ["zlib-ng-compat"], default-features = false }

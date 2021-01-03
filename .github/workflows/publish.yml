@@ -90,13 +90,12 @@ jobs:
         profile: minimal
         override: true
 
-    # Windows fails on `yarn exec` with "Couldn't find the binary neon", calling node directly
     - name: Build the binary
       shell: bash
       env: ${{ matrix.env }}
       run: |
         yarn --ignore-scripts
-        node node_modules/neon-cli/bin/cli.js build --release
+        cargo build --manifest-path=native/Cargo.toml --release
 
         if which sha256sum; then
           SHA256="$(sha256sum native/index.node | awk '{ print $1 }')"
