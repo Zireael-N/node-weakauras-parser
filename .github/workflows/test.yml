@@ -22,12 +22,12 @@ jobs:
 
     - name: Run tests
       run: |
-        cd native && cargo test
+        cargo test --manifest-path=native/Cargo.toml
 
     - name: Check formatting
       run: |
-        cd native && cargo fmt --all -- --check
+        cargo fmt --manifest-path=native/Cargo.toml --all -- --check
 
     - name: Check clippy warnings
       run: |
-        cd native && cargo clippy -- -D warnings
+        cargo clippy --manifest-path=native/Cargo.toml -- -D warnings
