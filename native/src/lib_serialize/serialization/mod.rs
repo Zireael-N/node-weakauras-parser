@@ -70,6 +70,7 @@ impl Serializer {
         self.result.push(TypeTag::Null.to_u8() << TYPE_TAG_SHIFT);
     }
 
+    #[cfg_attr(feature = "cargo-clippy", allow(clippy::manual_range_contains))]
     fn serialize_number(&mut self, value: f64) {
         const MAX_7_BIT: i64 = 72_057_594_037_927_936 - 1; // 2^56 - 1, `i64::pow` is not a `const fn` as of rustc 1.46
         const MAX_7_BIT_FLOAT: f64 = MAX_7_BIT as f64;
