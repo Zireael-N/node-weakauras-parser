@@ -41,7 +41,7 @@ pub(crate) fn encode_weakaura(data: &[u8]) -> Result<String, &'static str> {
             .and_then(|len| len.checked_add(1))
             .ok_or(OVERFLOW_ERROR)?,
     );
-    result.push_str("!");
+    result.push('!');
 
     unsafe {
         encode(data, &mut result);
