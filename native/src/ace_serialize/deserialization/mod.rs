@@ -65,6 +65,7 @@ impl<'s> Deserializer<'s> {
         Ok(value)
     }
 
+    #[cfg_attr(feature = "cargo-clippy", allow(clippy::float_cmp))]
     fn deserialize_helper<'c, 'v, C: 'c>(&mut self, cx: &'c mut C) -> Result<Option<Handle<'v, JsValue>>, &'static str>
     where
         C: Context<'v>,

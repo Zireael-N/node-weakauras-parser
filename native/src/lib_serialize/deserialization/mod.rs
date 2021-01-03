@@ -233,21 +233,21 @@ impl<'s, 'v> Deserializer<'s, 'v> {
                 let index = self.reader.read_u8().ok_or("Unexpected EOF")? - 1;
                 match self.table_refs.get(index as usize) {
                     None => Err("Invalid table reference"),
-                    Some(v) => Ok(v.clone()),
+                    Some(v) => Ok(*v),
                 }
             }
             TypeTag::MapRef16 => {
                 let index = self.deserialize_int(2)? - 1;
                 match self.table_refs.get(index as usize) {
                     None => Err("Invalid table reference"),
-                    Some(v) => Ok(v.clone()),
+                    Some(v) => Ok(*v),
                 }
             }
             TypeTag::MapRef24 => {
                 let index = self.deserialize_int(3)? - 1;
                 match self.table_refs.get(index as usize) {
                     None => Err("Invalid table reference"),
-                    Some(v) => Ok(v.clone()),
+                    Some(v) => Ok(*v),
                 }
             }
         }
@@ -325,7 +325,7 @@ impl<'s, 'v> Deserializer<'s, 'v> {
         }
 
         let map = map.as_value(cx);
-        self.table_refs.push(map.clone());
+        self.table_refs.push(map);
         Ok(map)
     }
 
@@ -359,7 +359,7 @@ impl<'s, 'v> Deserializer<'s, 'v> {
         }
 
         let v = v.as_value(cx);
-        self.table_refs.push(v.clone());
+        self.table_refs.push(v);
         Ok(v)
     }
 
@@ -401,7 +401,7 @@ impl<'s, 'v> Deserializer<'s, 'v> {
         }
 
         let map = map.as_value(cx);
-        self.table_refs.push(map.clone());
+        self.table_refs.push(map);
         Ok(map)
     }
 }
