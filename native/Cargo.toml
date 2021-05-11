@@ -15,13 +15,13 @@ crate-type = ["cdylib"]
 lto = true # increases compile time, decreases size of a binary
 
 [build-dependencies]
-neon-build = "0.6.0"
+neon-build = "0.8.1"
 
 [dependencies]
-neon = "0.6.0"
-# neon = { version = "0.6.0", features = ["napi-runtime"], default-features = false } # trait Task is not implemented for napi-runtime
-flate2 = { version = "1.0.19", features = ["zlib-ng-compat"], default-features = false }
-serde_json = { version = "1.0.61", features = ["preserve_order"] }
+neon = "0.8.1"
+# neon = { version = "0.8.1", features = ["napi-runtime"], default-features = false } # trait Task is not implemented for napi-runtime
+flate2 = { version = "1.0.20", features = ["zlib-ng-compat"], default-features = false }
+serde_json = { version = "1.0.64", features = ["preserve_order"] }
 ryu = "1.0.5"
 itoa = "0.4.7"
-indexmap = "1.6.0"
+indexmap = "1.6.2"
