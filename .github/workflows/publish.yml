@@ -10,19 +10,26 @@ jobs:
     strategy:
       matrix:
         build:
+        - ubuntu-node16
         - ubuntu-node15
         - ubuntu-node14
         - ubuntu-node12
         - ubuntu-node10
+        - macos-node16
         - macos-node15
         - macos-node14
         - macos-node12
         - macos-node10
+        - windows-node16
         - windows-node15
         - windows-node14
         - windows-node12
         - windows-node10
         include:
+        - build: ubuntu-node16
+          os: ubuntu-20.04
+          node: 16
+          env: { RUSTFLAGS: "-C target-cpu=haswell" }
         - build: ubuntu-node15
           os: ubuntu-20.04
           node: 15
@@ -40,6 +47,10 @@ jobs:
           node: 10
           env: { RUSTFLAGS: "-C target-cpu=haswell" }
         # target-cpu=haswell causes libz_sys to fail compilation on macOS
+        - build: macos-node16
+          os: macos-latest
+          node: 16
+          env: {}
         - build: macos-node15
           os: macos-latest
           node: 15
@@ -56,6 +67,10 @@ jobs:
           os: macos-latest
           node: 10
           env: {}
+        - build: windows-node16
+          os: windows-2019
+          node: 16
+          env: { RUSTFLAGS: "-C target-cpu=haswell" }
         - build: windows-node15
           os: windows-2019
           node: 15
@@ -117,7 +132,7 @@ jobs:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        node: [15, 14, 12, 10]
+        node: [16, 15, 14, 12, 10]
       fail-fast: false
 
     steps:

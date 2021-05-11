@@ -10,12 +10,12 @@ yarn add node-weakauras-parser
 
 The package is pre-built for the following environments ([Haswell](https://en.wikipedia.org/wiki/Haswell_(microarchitecture)) is used as the target arch):
 
-|            OS            | Node 10 | Node 12 | Node 14 | Node 15 |
-|--------------------------|---------|---------|---------|---------|
-|   Linux glibc (x86_64)   |    ✔️    |    ✔️    |    ✔️    |    ✔️    |
-| Linux musl-libc (x86_64) |    ✔️    |    ✔️    |    ✔️    |    ✔️    |
-|      macOS (x86_64)      |    ✔️    |    ✔️    |    ✔️    |    ✔️    |
-|     Windows (x86_64)     |    ✔️    |    ✔️    |    ✔️    |    ✔️    |
+|            OS            | Node 10 | Node 12 | Node 14 | Node 15 | Node 16 |
+|--------------------------|---------|---------|---------|---------|---------|
+|   Linux glibc (x86_64)   |    ✔️    |    ✔️    |    ✔️    |    ✔️    |    ✔️    |
+| Linux musl-libc (x86_64) |    ✔️    |    ✔️    |    ✔️    |    ✔️    |    ✔️    |
+|      macOS (x86_64)      |    ✔️    |    ✔️    |    ✔️    |    ✔️    |    ✔️    |
+|     Windows (x86_64)     |    ✔️    |    ✔️    |    ✔️    |    ✔️    |    ✔️    |
 
 If you use something else, you will need [Rust](https://www.rust-lang.org/tools/install) and [zlib](https://www.zlib.net/) in order to build from source code.
 
