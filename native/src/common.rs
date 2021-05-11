@@ -34,7 +34,7 @@ pub fn decode_weakaura(src: &str, max_size: Option<usize>) -> Result<(Vec<u8>, S
     } else if let Some(src) = src.strip_prefix("!") {
         (src, StringVersion::Deflate)
     } else {
-        (&src[..], StringVersion::Huffman)
+        (src, StringVersion::Huffman)
     };
 
     let decoded = base64::decode(weakaura)?;
