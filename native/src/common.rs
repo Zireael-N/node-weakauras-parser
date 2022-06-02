@@ -18,11 +18,11 @@ enum StringVersion {
 pub fn parse_max_size<'a>(v: Option<Handle<'a, JsValue>>, cx: &'a mut FunctionContext) -> NeonResult<Option<usize>> {
     match v {
         Some(v) => {
-            if v.is_a::<JsUndefined>() {
+            if v.is_a::<JsUndefined, _>(cx) {
                 Ok(Some(8 * 1024 * 1024))
             } else {
                 v.downcast_or_throw::<JsNumber, _>(cx).and_then(|v| {
-                    let v = v.value();
+                    let v = v.value(cx);
                     if v == f64::INFINITY {
                         Ok(None)
                     } else if v.is_finite() && v >= 0.0 {

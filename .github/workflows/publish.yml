@@ -5,72 +5,24 @@ on:
     - v[0-9]+.[0-9]+.[0-9]+
 jobs:
   publish:
-    name: Publish ${{ matrix.build }}
+    name: Publish (${{ matrix.build }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         build:
-        - ubuntu-node16
-        - ubuntu-node14
-        - ubuntu-node12
-        - ubuntu-node10
-        - macos-node16
-        - macos-node14
-        - macos-node12
-        - macos-node10
-        - windows-node16
-        - windows-node14
-        - windows-node12
-        - windows-node10
+        - Ubuntu
+        - macOS
+        - Windows
         include:
-        - build: ubuntu-node16
-          os: ubuntu-20.04
-          node: 16
-          env: { RUSTFLAGS: "-C target-cpu=haswell" }
-        - build: ubuntu-node14
-          os: ubuntu-20.04
-          node: 14
-          env: { RUSTFLAGS: "-C target-cpu=haswell" }
-        - build: ubuntu-node12
-          os: ubuntu-20.04
-          node: 12
-          env: { RUSTFLAGS: "-C target-cpu=haswell" }
-        - build: ubuntu-node10
-          os: ubuntu-20.04
-          node: 10
+        - build: Ubuntu
+          os: ubuntu-latest
           env: { RUSTFLAGS: "-C target-cpu=haswell" }
         # target-cpu=haswell causes libz_sys to fail compilation on macOS
-        - build: macos-node16
+        - build: macOS
           os: macos-latest
-          node: 16
           env: {}
-        - build: macos-node14
-          os: macos-latest
-          node: 14
-          env: {}
-        - build: macos-node12
-          os: macos-latest
-          node: 12
-          env: {}
-        - build: macos-node10
-          os: macos-latest
-          node: 10
-          env: {}
-        - build: windows-node16
-          os: windows-2019
-          node: 16
-          env: { RUSTFLAGS: "-C target-cpu=haswell" }
-        - build: windows-node14
-          os: windows-2019
-          node: 14
-          env: { RUSTFLAGS: "-C target-cpu=haswell" }
-        - build: windows-node12
-          os: windows-2019
-          node: 12
-          env: { RUSTFLAGS: "-C target-cpu=haswell" }
-        - build: windows-node10
-          os: windows-2019
-          node: 10
+        - build: Windows
+          os: windows-latest
           env: { RUSTFLAGS: "-C target-cpu=haswell" }
       fail-fast: false
 
@@ -81,7 +33,7 @@ jobs:
     - name: Install Node
       uses: actions/setup-node@v1
       with:
-        node-version: ${{ matrix.node }}
+        node-version: 14
 
     - name: Install Rust
       uses: actions-rs/toolchain@v1
@@ -90,20 +42,23 @@ jobs:
         profile: minimal
         override: true
 
-    # Windows fails on `yarn exec` with "Couldn't find the binary neon", calling node directly
+    # Windows fails on `yarn exec` with "Couldn't find the binary", calling node directly
     - name: Build the binary
       shell: bash
       env: ${{ matrix.env }}
       run: |
+        export npm_package_name=node-weakauras-parser
         yarn install --production=false --ignore-scripts
-        node node_modules/neon-cli/bin/cli.js build --release
+        node node_modules/cargo-cp-artifact/bin/cargo-cp-artifact.js -nc native/index.node -- cargo build --release --manifest-path=native/Cargo.toml --message-format=json-render-diagnostics
 
-        if which sha256sum; then
-          SHA256="$(sha256sum native/index.node | awk '{ print $1 }')"
-        elif which shasum; then # macOS
-          SHA256="$(shasum -a 256 native/index.node | awk '{ print $1 }')"
+        if command -v sha512sum; then
+          SHA512="$(sha512sum native/index.node | awk '{ print $1 }')"
+        elif command -v shasum; then
+          SHA512="$(shasum -a 512 native/index.node | awk '{ print $1 }')"
+        elif command -v openssl; then
+          SHA512="$(openssl dgst -sha512 native/index.node | awk '{ print $2 }')"
         fi
-        echo "SHA256 of native/index.node: ${SHA256:-N/A}"
+        echo "SHA-512 of native/index.node: ${SHA512:-N/A}"
 
     - name: Publish the binary
       shell: bash
@@ -113,22 +68,17 @@ jobs:
         rm -rf native/target && yarn upload-binary || exit 0
 
   publish-alpine:
-    name: Publish alpine-node${{ matrix.node }}
-    runs-on: ubuntu-18.04
-    strategy:
-      matrix:
-        node: [16, 14, 12, 10]
-      fail-fast: false
-
+    name: Publish (Alpine Linux)
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout the repo
       uses: actions/checkout@v2
 
     - name: Build the binary
       run: |
-        docker build --build-arg NODE_VERSION="${{ matrix.node }}" --build-arg RUSTFLAGS="-C target-cpu=haswell -C target-feature=-crt-static" -t nwp:${{ matrix.node }} -f .github/workflows/Dockerfile .
+        docker build --build-arg RUSTFLAGS="-C target-cpu=haswell -C target-feature=-crt-static" -t nwp:latest -f .github/workflows/Dockerfile .
 
     - name: Publish the binary
       shell: bash
       run: |
-        docker run --rm --env NODE_PRE_GYP_GITHUB_TOKEN="${{ secrets.NODE_PRE_GYP_GITHUB_TOKEN }}" nwp:${{ matrix.node }} yarn upload-binary || exit 0
+        docker run --rm --env NODE_PRE_GYP_GITHUB_TOKEN="${{ secrets.NODE_PRE_GYP_GITHUB_TOKEN }}" nwp:latest yarn upload-binary || exit 0

@@ -1,21 +1,21 @@
 {
   "name": "node-weakauras-parser",
-  "version": "3.1.4",
+  "version": "3.2.0",
   "description": "Native module for Node.js that does deserialization/serialization of WeakAuras' strings",
   "keywords": ["World of Warcraft", "WoW", "WeakAuras", "WA"],
   "main": "lib/index.js",
   "author": "Velithris",
   "license": "MIT",
   "dependencies": {
-    "neon-cli": "^0.8.0",
-    "node-pre-gyp": "amilajack/node-pre-gyp"
+    "@mapbox/node-pre-gyp": "^1.0",
+    "cargo-cp-artifact": "^0.1"
   },
   "devDependencies": {
-    "node-pre-gyp-github": "^1.4.3"
+    "node-pre-gyp-github": "^1.4"
   },
   "scripts": {
-    "install": "node-pre-gyp install --fallback-to-build=false || neon build --release",
-    "install:debug": "neon build",
+    "install": "node-pre-gyp install --fallback-to-build=false || cargo-cp-artifact -nc native/index.node -- cargo build --release --manifest-path=native/Cargo.toml --message-format=json-render-diagnostics",
+    "install:debug": "cargo-cp-artifact -nc native/index.node -- cargo build --manifest-path=native/Cargo.toml --message-format=json-render-diagnostics",
     "upload-binary": "node-pre-gyp package && node-pre-gyp-github publish"
   },
   "repository": {
@@ -23,14 +23,13 @@
     "url": "https://github.com/Zireael-N/node-weakauras-parser.git"
   },
   "engines": {
-    "node": ">= 8"
+    "node": ">= 12"
   },
   "binary": {
     "module_name": "index",
     "host": "https://github.com/Zireael-N/node-weakauras-parser/releases/download/",
     "remote_path": "v{version}",
-    "package_name": "{node_abi}-{platform}-{arch}-{libc}.tar.gz",
-    "module_path": "./native",
-    "pkg_path": "."
+    "package_name": "{platform}-{arch}-{libc}.tar.gz",
+    "module_path": "./native"
   }
 }
