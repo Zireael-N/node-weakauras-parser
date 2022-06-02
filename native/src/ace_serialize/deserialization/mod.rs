@@ -1,3 +1,4 @@
+use crate::macros::check_recursion;
 use serde_json::{map::Map, Number, Value};
 
 mod reader;
@@ -59,20 +60,6 @@ impl<'s> Deserializer<'s> {
 
     #[cfg_attr(feature = "cargo-clippy", allow(clippy::float_cmp))]
     fn deserialize_helper(&mut self) -> Result<Option<Value>, &'static str> {
-        // Taken from serde_json
-        macro_rules! check_recursion {
-            ($($body:tt)*) => {
-                self.remaining_depth -= 1;
-                if self.remaining_depth == 0 {
-                    return Err("Recursion limit exceeded");
-                }
-
-                $($body)*
-
-                self.remaining_depth += 1;
-            }
-        }
-
         Ok(Some(match self.reader.read_identifier()? {
             "^^" => return Ok(None),
             "^Z" => Value::Null,
@@ -117,7 +104,7 @@ impl<'s> Deserializer<'s> {
                             break;
                         }
                         _ => {
-                            check_recursion! {
+                            check_recursion!(self, {
                                 let key = self.deserialize_helper()?.ok_or("Missing key")?;
                                 let value = match self.reader.peek_identifier()? {
                                     "^t" => return Err("Unexpected end of a table"),
@@ -126,7 +113,7 @@ impl<'s> Deserializer<'s> {
 
                                 keys.push(key);
                                 values.push(value);
-                            }
+                            });
                         }
                     }
                 }

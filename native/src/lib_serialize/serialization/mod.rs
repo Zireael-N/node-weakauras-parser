@@ -1,4 +1,5 @@
 use super::{EmbeddedTypeTag, TypeTag, MINOR};
+use crate::macros::check_recursion;
 use indexmap::IndexMap;
 use serde_json::{map::Map, Value};
 
@@ -7,17 +8,12 @@ const EMBEDDED_TYPE_TAG_SHIFT: u8 = 2;
 const EMBEDDED_LEN_SHIFT: u8 = 4;
 
 fn required_bytes(v: u64) -> u8 {
-    // `match` does not support non-inclusive ranges as of rustc 1.46
-    if v < 256 {
-        1
-    } else if v < 65_536 {
-        2
-    } else if v < 16_777_216 {
-        3
-    } else if v < 4_294_967_296 {
-        4
-    } else {
-        7
+    match v {
+        0..=255 => 1,
+        256..=65_535 => 2,
+        65_536..=16_777_215 => 3,
+        16_777_216..=4_294_967_295 => 4,
+        _ => 7,
     }
 }
 
@@ -72,10 +68,9 @@ impl Serializer {
 
     #[cfg_attr(feature = "cargo-clippy", allow(clippy::manual_range_contains))]
     fn serialize_number(&mut self, value: f64) {
-        const MAX_7_BIT: i64 = 72_057_594_037_927_936 - 1; // 2^56 - 1, `i64::pow` is not a `const fn` as of rustc 1.46
-        const MAX_7_BIT_FLOAT: f64 = MAX_7_BIT as f64;
+        const MAX_7_BIT: f64 = (2i64.pow(56) - 1) as f64;
 
-        if value.fract() != 0.0 || (value < -MAX_7_BIT_FLOAT || value > MAX_7_BIT_FLOAT) {
+        if value.fract() != 0.0 || (value < -MAX_7_BIT || value > MAX_7_BIT) {
             self.result.push(TypeTag::Float.to_u8() << TYPE_TAG_SHIFT);
             self.result.extend_from_slice(&value.to_be_bytes());
         } else {
@@ -86,7 +81,7 @@ impl Serializer {
             let value = unsafe { value.to_int_unchecked::<i64>() };
 
             if value > -4096 && value < 4096 {
-                if value > 0 && value < 128 {
+                if value >= 0 && value < 128 {
                     self.result.push(((value as u8) << 1) | 1);
                 } else {
                     let (value, neg_bit) = if value < 0 {
@@ -191,7 +186,7 @@ impl Serializer {
                     self.string_refs.insert(value.into(), self.string_refs.len() + 1);
                 }
 
-                self.result.extend_from_slice(&value.as_bytes());
+                self.result.extend_from_slice(value.as_bytes());
             }
         }
 
@@ -217,20 +212,6 @@ impl Serializer {
     }
 
     fn serialize_slice(&mut self, slice: &mut [Value]) -> Result<(), &'static str> {
-        // Taken from serde_json
-        macro_rules! check_recursion {
-            ($($body:tt)*) => {
-                self.remaining_depth -= 1;
-                if self.remaining_depth == 0 {
-                    return Err("Recursion limit exceeded");
-                }
-
-                $($body)*
-
-                self.remaining_depth += 1;
-            }
-        }
-
         let len = slice.len();
         if len < 16 {
             self.result.push(
@@ -256,31 +237,16 @@ impl Serializer {
         }
 
         for el in slice {
-            check_recursion! {
+            check_recursion!(self, {
                 self.serialize_helper(el)?;
-            }
+            });
         }
 
         Ok(())
     }
 
     fn serialize_map(&mut self, map: &mut Map<String, Value>) -> Result<(), &'static str> {
-        // Taken from serde_json
-        macro_rules! check_recursion {
-            ($($body:tt)*) => {
-                self.remaining_depth -= 1;
-                if self.remaining_depth == 0 {
-                    return Err("Recursion limit exceeded");
-                }
-
-                $($body)*
-
-                self.remaining_depth += 1;
-            }
-        }
-
         let len = map.len();
-
         if len < 16 {
             self.result.push(
                 (EmbeddedTypeTag::Map.to_u8() << EMBEDDED_TYPE_TAG_SHIFT) | ((len as u8) << EMBEDDED_LEN_SHIFT) | 2,
@@ -305,30 +271,16 @@ impl Serializer {
         }
 
         for (key, value) in map {
-            check_recursion! {
-                self.serialize_string(&key)?;
+            check_recursion!(self, {
+                self.serialize_string(key)?;
                 self.serialize_helper(value)?;
-            }
+            });
         }
 
         Ok(())
     }
 
     fn serialize_mixed(&mut self, slice: &mut [Value], map: &mut Map<String, Value>) -> Result<(), &'static str> {
-        // Taken from serde_json
-        macro_rules! check_recursion {
-            ($($body:tt)*) => {
-                self.remaining_depth -= 1;
-                if self.remaining_depth == 0 {
-                    return Err("Recursion limit exceeded");
-                }
-
-                $($body)*
-
-                self.remaining_depth += 1;
-            }
-        }
-
         let map_len = map.len();
         let slice_len = slice.len();
 
@@ -361,16 +313,16 @@ impl Serializer {
         }
 
         for el in slice {
-            check_recursion! {
+            check_recursion!(self, {
                 self.serialize_helper(el)?;
-            }
+            });
         }
 
         for (key, value) in map {
-            check_recursion! {
-                self.serialize_string(&key)?;
+            check_recursion!(self, {
+                self.serialize_string(key)?;
                 self.serialize_helper(value)?;
-            }
+            });
         }
 
         Ok(())

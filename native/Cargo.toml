@@ -1,8 +1,8 @@
 [package]
 name = "node-weakauras-parser"
-version = "3.1.3"
+version = "3.1.4"
 authors = ["Velithris"]
-edition = "2018"
+edition = "2021"
 license = "MIT"
 build = "build.rs"
 exclude = ["artifacts.json", "index.node"]
@@ -15,13 +15,13 @@ crate-type = ["cdylib"]
 lto = true # increases compile time, decreases size of a binary
 
 [build-dependencies]
-neon-build = "0.8.1"
+neon-build = "0.8"
 
 [dependencies]
-neon = "0.8.1"
-# neon = { version = "0.8.1", features = ["napi-runtime"], default-features = false } # trait Task is not implemented for napi-runtime
-flate2 = { version = "1.0.20", features = ["zlib-ng-compat"], default-features = false }
-serde_json = { version = "1.0.64", features = ["preserve_order"] }
-ryu = "1.0.5"
-itoa = "0.4.7"
-indexmap = "1.6.2"
+neon = "0.8"
+# neon = { version = "0.8", features = ["napi-runtime"], default-features = false } # trait Task is not implemented for napi-runtime
+flate2 = { version = "1", features = ["zlib-ng"], default-features = false }
+serde_json = { version = "1", features = ["preserve_order"] }
+ryu = "1"
+itoa = "1"
+indexmap = "1"

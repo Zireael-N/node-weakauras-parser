@@ -1,3 +1,4 @@
+use crate::macros::check_recursion;
 use serde_json::Value;
 
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::unreadable_literal))]
@@ -12,6 +13,15 @@ fn f64_to_parts(v: f64) -> (u64, i16, i8) {
     };
     exponent -= 1023 + 52;
     (mantissa, exponent, sign)
+}
+
+fn write_integer_to_a_string<I>(string: &mut String, value: I)
+where
+    I: itoa::Integer,
+{
+    let mut buffer = itoa::Buffer::new();
+    let serialized = buffer.format(value);
+    string.push_str(serialized)
 }
 
 pub struct Serializer {
@@ -34,20 +44,6 @@ impl Serializer {
     }
 
     fn serialize_helper(&mut self, value: &Value) -> Result<(), &'static str> {
-        // Taken from serde_json
-        macro_rules! check_recursion {
-            ($($body:tt)*) => {
-                self.remaining_depth -= 1;
-                if self.remaining_depth == 0 {
-                    return Err("Recursion limit exceeded");
-                }
-
-                $($body)*
-
-                self.remaining_depth += 1;
-            }
-        }
-
         match *value {
             Value::Null => self.result.push_str("^Z"),
             Value::Bool(b) => self.result.push_str(if b { "^B" } else { "^b" }),
@@ -64,11 +60,11 @@ impl Serializer {
 
                 self.result.push_str("^T");
                 for (i, v) in vec.iter().enumerate() {
-                    self.result.push_str("^N");
-                    itoa::fmt(&mut self.result, i + 1).map_err(|_| "Failed writing to a string")?;
-                    check_recursion! {
+                    check_recursion!(self, {
+                        self.result.push_str("^N");
+                        write_integer_to_a_string(&mut self.result, i + 1);
                         self.serialize_helper(v)?;
-                    }
+                    });
                 }
                 self.result.push_str("^t");
             }
@@ -77,11 +73,12 @@ impl Serializer {
 
                 self.result.push_str("^T");
                 for (key, value) in m.iter() {
-                    check_recursion! {
-                        self.result.push_str(if key.parse::<i32>().is_ok() { "^N" } else { "^S" });
-                        self.result.push_str(&key);
+                    check_recursion!(self, {
+                        self.result
+                            .push_str(if key.parse::<i32>().is_ok() { "^N" } else { "^S" });
+                        self.result.push_str(key);
                         self.serialize_helper(value)?;
-                    }
+                    });
                 }
                 self.result.push_str("^t");
             }
@@ -111,9 +108,9 @@ impl Serializer {
                 if sign < 0 {
                     self.result.push('-');
                 }
-                itoa::fmt(&mut self.result, mantissa).map_err(|_| "Failed writing to a string")?;
+                write_integer_to_a_string(&mut self.result, mantissa);
                 self.result.push_str("^f");
-                itoa::fmt(&mut self.result, exponent).map_err(|_| "Failed writing to a string")?;
+                write_integer_to_a_string(&mut self.result, exponent);
             }
         }
 

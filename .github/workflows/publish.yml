@@ -11,17 +11,14 @@ jobs:
       matrix:
         build:
         - ubuntu-node16
-        - ubuntu-node15
         - ubuntu-node14
         - ubuntu-node12
         - ubuntu-node10
         - macos-node16
-        - macos-node15
         - macos-node14
         - macos-node12
         - macos-node10
         - windows-node16
-        - windows-node15
         - windows-node14
         - windows-node12
         - windows-node10
@@ -29,10 +26,6 @@ jobs:
         - build: ubuntu-node16
           os: ubuntu-20.04
           node: 16
-          env: { RUSTFLAGS: "-C target-cpu=haswell" }
-        - build: ubuntu-node15
-          os: ubuntu-20.04
-          node: 15
           env: { RUSTFLAGS: "-C target-cpu=haswell" }
         - build: ubuntu-node14
           os: ubuntu-20.04
@@ -51,10 +44,6 @@ jobs:
           os: macos-latest
           node: 16
           env: {}
-        - build: macos-node15
-          os: macos-latest
-          node: 15
-          env: {}
         - build: macos-node14
           os: macos-latest
           node: 14
@@ -70,10 +59,6 @@ jobs:
         - build: windows-node16
           os: windows-2019
           node: 16
-          env: { RUSTFLAGS: "-C target-cpu=haswell" }
-        - build: windows-node15
-          os: windows-2019
-          node: 15
           env: { RUSTFLAGS: "-C target-cpu=haswell" }
         - build: windows-node14
           os: windows-2019
@@ -110,7 +95,7 @@ jobs:
       shell: bash
       env: ${{ matrix.env }}
       run: |
-        yarn --ignore-scripts
+        yarn install --production=false --ignore-scripts
         node node_modules/neon-cli/bin/cli.js build --release
 
         if which sha256sum; then
@@ -132,7 +117,7 @@ jobs:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        node: [16, 15, 14, 12, 10]
+        node: [16, 14, 12, 10]
       fail-fast: false
 
     steps:

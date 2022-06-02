@@ -36,9 +36,7 @@ impl Task for EncodeTask {
 
 pub fn decode_weakaura(mut cx: FunctionContext) -> JsResult<JsUndefined> {
     let src = cx.argument::<JsString>(0)?.value();
-    let max_size = cx
-        .argument::<JsValue>(1)
-        .and_then(|v| common::transform_max_size(v, &mut cx))?;
+    let max_size = common::parse_max_size(cx.argument_opt(1), &mut cx)?;
     let cb = cx.argument::<JsFunction>(2)?;
 
     DecodeTask(src, max_size).schedule(cb);

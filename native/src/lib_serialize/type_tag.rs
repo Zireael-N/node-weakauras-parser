@@ -1,5 +1,6 @@
 #[repr(u8)]
 #[allow(dead_code)]
+#[derive(Clone, Copy)]
 pub(crate) enum EmbeddedTypeTag {
     Str = 0,
     Map = 1,
@@ -17,7 +18,6 @@ impl EmbeddedTypeTag {
         }
     }
 
-    #[cfg_attr(feature = "cargo-clippy", allow(clippy::wrong_self_convention))]
     pub(crate) fn to_u8(self) -> u8 {
         // SAFETY: safe due to #[repr(u8)]
         unsafe { std::mem::transmute(self) }
@@ -26,6 +26,7 @@ impl EmbeddedTypeTag {
 
 #[repr(u8)]
 #[allow(dead_code)]
+#[derive(Clone, Copy)]
 pub(crate) enum TypeTag {
     Null = 0,
 
@@ -80,7 +81,6 @@ impl TypeTag {
         }
     }
 
-    #[cfg_attr(feature = "cargo-clippy", allow(clippy::wrong_self_convention))]
     pub(crate) fn to_u8(self) -> u8 {
         // SAFETY: safe due to #[repr(u8)]
         unsafe { std::mem::transmute(self) }

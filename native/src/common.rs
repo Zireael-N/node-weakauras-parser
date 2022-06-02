@@ -8,26 +8,32 @@ use super::huffman;
 use super::ace_serialize::Deserializer as LegacyDeserializer;
 use super::lib_serialize::{Deserializer, Serializer};
 
+#[derive(Clone, Copy, PartialEq, Eq)]
 enum StringVersion {
     Huffman,             // base64
     Deflate,             // '!' + base64
     BinarySerialization, // !WA:\d+! + base64
 }
 
-pub fn transform_max_size<'a>(v: Handle<'a, JsValue>, cx: &'a mut FunctionContext) -> NeonResult<Option<usize>> {
-    if v.downcast::<JsUndefined>().is_ok() {
-        Ok(Some(8 * 1024 * 1024))
-    } else {
-        v.downcast_or_throw::<JsNumber, FunctionContext>(cx).and_then(|v| {
-            let v = v.value();
-            if v == f64::INFINITY {
-                Ok(None)
-            } else if v.is_finite() {
-                Ok(Some(v.trunc() as usize))
+pub fn parse_max_size<'a>(v: Option<Handle<'a, JsValue>>, cx: &'a mut FunctionContext) -> NeonResult<Option<usize>> {
+    match v {
+        Some(v) => {
+            if v.is_a::<JsUndefined>() {
+                Ok(Some(8 * 1024 * 1024))
             } else {
-                cx.throw_type_error("Invalid value, expected a finite number or +Infinity")
+                v.downcast_or_throw::<JsNumber, _>(cx).and_then(|v| {
+                    let v = v.value();
+                    if v == f64::INFINITY {
+                        Ok(None)
+                    } else if v.is_finite() && v >= 0.0 {
+                        Ok(Some(v.trunc() as usize))
+                    } else {
+                        cx.throw_type_error("Invalid value, expected a positive finite number or +Infinity")
+                    }
+                })
             }
-        })
+        }
+        None => Ok(Some(8 * 1024 * 1024)),
     }
 }
 
@@ -43,7 +49,7 @@ pub fn decode_weakaura(src: &str, max_size: Option<usize>) -> Result<String, &'s
     let decoded = base64::decode(weakaura)?;
 
     let max_size = max_size.unwrap_or(usize::MAX);
-    let decompressed = if let StringVersion::Huffman = version {
+    let decompressed = if version == StringVersion::Huffman {
         huffman::decompress(&decoded, max_size)
     } else {
         use flate2::read::DeflateDecoder;
@@ -68,7 +74,7 @@ pub fn decode_weakaura(src: &str, max_size: Option<usize>) -> Result<String, &'s
             .map(|_| Cow::from(result))
     }?;
 
-    let deserialized = if let StringVersion::BinarySerialization = version {
+    let deserialized = if version == StringVersion::BinarySerialization {
         Deserializer::from_slice(&decompressed).deserialize_first()
     } else {
         LegacyDeserializer::from_str(&String::from_utf8_lossy(&decompressed)).deserialize_first()
@@ -78,7 +84,7 @@ pub fn decode_weakaura(src: &str, max_size: Option<usize>) -> Result<String, &'s
 }
 
 pub fn encode_weakaura(json: &str) -> Result<String, &'static str> {
-    let serialized = serde_json::from_str(&json)
+    let serialized = serde_json::from_str(json)
         .map_err(|_| "Failed to parse JSON")
         .and_then(|val| Serializer::serialize(val, Some(json.len())))?;
 
