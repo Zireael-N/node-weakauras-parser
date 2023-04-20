@@ -28,12 +28,12 @@ jobs:
 
     steps:
     - name: Checkout the repo
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Install Node
       uses: actions/setup-node@v1
       with:
-        node-version: 14
+        node-version: 20
 
     - name: Install Rust
       uses: actions-rs/toolchain@v1
@@ -72,7 +72,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout the repo
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build the binary
       run: |
