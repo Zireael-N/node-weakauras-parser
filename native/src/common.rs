@@ -15,7 +15,10 @@ enum StringVersion {
     BinarySerialization, // !WA:\d+! + base64
 }
 
-pub fn parse_max_size<'a>(v: Option<Handle<'a, JsValue>>, cx: &'a mut FunctionContext) -> NeonResult<Option<usize>> {
+pub fn parse_max_size<'a>(
+    v: Option<Handle<'a, JsValue>>,
+    cx: &'a mut FunctionContext,
+) -> NeonResult<Option<usize>> {
     match v {
         Some(v) => {
             if v.is_a::<JsUndefined, _>(cx) {
@@ -28,7 +31,9 @@ pub fn parse_max_size<'a>(v: Option<Handle<'a, JsValue>>, cx: &'a mut FunctionCo
                     } else if v.is_finite() && v >= 0.0 {
                         Ok(Some(v.trunc() as usize))
                     } else {
-                        cx.throw_type_error("Invalid value, expected a positive finite number or +Infinity")
+                        cx.throw_type_error(
+                            "Invalid value, expected a positive finite number or +Infinity",
+                        )
                     }
                 })
             }

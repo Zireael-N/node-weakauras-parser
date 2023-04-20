@@ -10,10 +10,6 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
-#[cfg_attr(
-    feature = "cargo-clippy",
-    allow(clippy::cast_ptr_alignment, clippy::unreadable_literal)
-)]
 #[inline(always)]
 /// SAFETY: the caller must ensure that buf can hold AT LEAST ((s.len() * 4 + 2) / 3) more elements
 pub(crate) unsafe fn encode(s: &[u8], buf: &mut String) {
@@ -44,10 +40,15 @@ pub(crate) unsafe fn encode(s: &[u8], buf: &mut String) {
 
         let mut result = _mm_or_si128(
             _mm_subs_epu8(indices, _mm_set1_epi8(51)),
-            _mm_and_si128(_mm_cmpgt_epi8(_mm_set1_epi8(26), indices), _mm_set1_epi8(13)),
+            _mm_and_si128(
+                _mm_cmpgt_epi8(_mm_set1_epi8(26), indices),
+                _mm_set1_epi8(13),
+            ),
         );
 
-        let offsets = _mm_setr_epi8(39, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -22, -22, 97, 0, 0);
+        let offsets = _mm_setr_epi8(
+            39, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -22, -22, 97, 0, 0,
+        );
 
         result = _mm_add_epi8(_mm_shuffle_epi8(offsets, result), indices);
 

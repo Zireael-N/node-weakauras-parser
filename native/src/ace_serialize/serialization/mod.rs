@@ -1,7 +1,6 @@
 use crate::macros::check_recursion;
 use serde_json::Value;
 
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::unreadable_literal))]
 fn f64_to_parts(v: f64) -> (u64, i16, i8) {
     let bits = v.to_bits();
     let sign: i8 = if bits >> 63 == 0 { 1 } else { -1 };
@@ -30,7 +29,10 @@ pub struct Serializer {
 }
 
 impl Serializer {
-    pub fn serialize(value: &Value, approximate_len: Option<usize>) -> Result<String, &'static str> {
+    pub fn serialize(
+        value: &Value,
+        approximate_len: Option<usize>,
+    ) -> Result<String, &'static str> {
         let mut serializer = Self {
             remaining_depth: 128,
             result: String::with_capacity(approximate_len.unwrap_or(1024)),
@@ -74,8 +76,11 @@ impl Serializer {
                 self.result.push_str("^T");
                 for (key, value) in m.iter() {
                     check_recursion!(self, {
-                        self.result
-                            .push_str(if key.parse::<i32>().is_ok() { "^N" } else { "^S" });
+                        self.result.push_str(if key.parse::<i32>().is_ok() {
+                            "^N"
+                        } else {
+                            "^S"
+                        });
                         self.result.push_str(key);
                         self.serialize_helper(value)?;
                     });
@@ -87,13 +92,13 @@ impl Serializer {
         Ok(())
     }
 
-    #[cfg_attr(feature = "cargo-clippy", allow(clippy::float_cmp))]
     fn serialize_number(&mut self, value: f64) -> Result<(), &'static str> {
         if value.is_nan() {
             return Err("AceSerializer does not support NaNs");
         } else if !value.is_finite() {
             self.result.push_str("^N");
-            self.result.push_str(if value > 0.0 { "1.#INF" } else { "-1.#INF" })
+            self.result
+                .push_str(if value > 0.0 { "1.#INF" } else { "-1.#INF" })
         } else {
             let mut buffer = ryu::Buffer::new();
             let str_value = buffer.format_finite(value);

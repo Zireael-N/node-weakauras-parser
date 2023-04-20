@@ -13,14 +13,16 @@ pub(crate) enum TableData {
 }
 
 // https://doc.rust-lang.org/core/slice/struct.Iter.html#method.is_sorted_by
-// is Nightly-only as of Rust 1.61.0.
+// is Nightly-only as of Rust 1.69.0 (https://github.com/rust-lang/rust/issues/53485).
 use std::cmp::Ordering;
 #[cfg_attr(not(debug_assertions), allow(dead_code))]
 fn is_sorted<T, F>(slice: &[T], comparator: F) -> bool
 where
     F: Fn(&T, &T) -> Ordering,
 {
-    slice.windows(2).all(|w| comparator(&w[0], &w[1]) != Ordering::Greater)
+    slice
+        .windows(2)
+        .all(|w| comparator(&w[0], &w[1]) != Ordering::Greater)
 }
 
 pub(crate) fn build_lookup_table(codes: &[(u32, u8, u8)]) -> Result<Vec<TableEntry>, &'static str> {

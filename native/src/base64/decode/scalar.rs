@@ -18,7 +18,10 @@ pub(crate) unsafe fn decode(s: &[u8], buf: &mut Vec<u8>) -> Result<(), &'static 
     for chunk in chunks.by_ref() {
         len += 3;
 
-        let word = DECODE_LUT0[chunk[0]] | DECODE_LUT1[chunk[1]] | DECODE_LUT2[chunk[2]] | DECODE_LUT3[chunk[3]];
+        let word = DECODE_LUT0[chunk[0]]
+            | DECODE_LUT1[chunk[1]]
+            | DECODE_LUT2[chunk[2]]
+            | DECODE_LUT3[chunk[3]];
 
         if word == BAD_SYMBOL {
             return Err(INVALID_B64);
@@ -43,7 +46,8 @@ pub(crate) unsafe fn decode(s: &[u8], buf: &mut Vec<u8>) -> Result<(), &'static 
         3 => {
             len += 2;
 
-            let word = DECODE_LUT0[remainder[0]] | DECODE_LUT1[remainder[1]] | DECODE_LUT2[remainder[2]];
+            let word =
+                DECODE_LUT0[remainder[0]] | DECODE_LUT1[remainder[1]] | DECODE_LUT2[remainder[2]];
 
             if word == BAD_SYMBOL {
                 return Err(INVALID_B64);

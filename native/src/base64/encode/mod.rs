@@ -1,5 +1,8 @@
 mod scalar;
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "ssse3"))]
+#[cfg(all(
+    any(target_arch = "x86", target_arch = "x86_64"),
+    target_feature = "ssse3"
+))]
 mod sse;
 
 const OVERFLOW_ERROR: &str = "Cannot calculate capacity without overflowing";
@@ -19,29 +22,37 @@ fn calculate_capacity(data: &[u8]) -> Option<usize> {
     })
 }
 
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "ssse3"))]
+#[cfg(all(
+    any(target_arch = "x86", target_arch = "x86_64"),
+    target_feature = "ssse3"
+))]
 #[inline(always)]
 /// SAFETY: the caller must ensure that buf can hold AT LEAST ((s.len() * 4 + 2) / 3) more elements
 unsafe fn encode(data: &[u8], buf: &mut String) {
     sse::encode(data, buf);
 }
 
-#[cfg(any(not(any(target_arch = "x86", target_arch = "x86_64")), not(target_feature = "ssse3")))]
+#[cfg(any(
+    not(any(target_arch = "x86", target_arch = "x86_64")),
+    not(target_feature = "ssse3")
+))]
 #[inline(always)]
 /// SAFETY: the caller must ensure that buf can hold AT LEAST ((s.len() * 4 + 2) / 3) more elements
 unsafe fn encode(data: &[u8], buf: &mut String) {
     scalar::encode(data, buf);
 }
 
-/// Same as encode_raw() but prepends the output with "!"
+/// Same as encode_raw() but prepends the output with "!WA:2!"
 /// to reduce allocations.
 pub(crate) fn encode_weakaura(data: &[u8]) -> Result<String, &'static str> {
+    const WA_PREFIX: &str = "!WA:2!";
+
     let mut result = String::with_capacity(
         calculate_capacity(data)
-            .and_then(|len| len.checked_add(6))
+            .and_then(|len| len.checked_add(WA_PREFIX.len()))
             .ok_or(OVERFLOW_ERROR)?,
     );
-    result.push_str("!WA:2!");
+    result.push_str(WA_PREFIX);
 
     unsafe {
         encode(data, &mut result);
@@ -64,7 +75,10 @@ mod tests {
     use super::*;
 
     #[test]
-    #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "ssse3"))]
+    #[cfg(all(
+        any(target_arch = "x86", target_arch = "x86_64"),
+        target_feature = "ssse3"
+    ))]
     fn scalar_and_sse_return_same_values() {
         let data: Vec<u8> = (0..=255).cycle().take(1024 * 30 + 3).collect();
 

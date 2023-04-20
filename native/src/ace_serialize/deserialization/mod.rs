@@ -58,7 +58,6 @@ impl<'s> Deserializer<'s> {
         Ok(value)
     }
 
-    #[cfg_attr(feature = "cargo-clippy", allow(clippy::float_cmp))]
     fn deserialize_helper(&mut self) -> Result<Option<Value>, &'static str> {
         Ok(Some(match self.reader.read_identifier()? {
             "^^" => return Ok(None),
@@ -66,15 +65,14 @@ impl<'s> Deserializer<'s> {
             "^B" => Value::Bool(true),
             "^b" => Value::Bool(false),
             "^S" => Value::String(self.reader.parse_str()?.to_string()),
-            "^N" => {
-                self.reader
-                    .read_until_next()
-                    .and_then(Self::deserialize_number)
-                    .map(|v| match Number::from_f64(v) {
-                        Some(v) => Value::Number(v),
-                        None => Value::Null,
-                    })?
-            }
+            "^N" => self
+                .reader
+                .read_until_next()
+                .and_then(Self::deserialize_number)
+                .map(|v| match Number::from_f64(v) {
+                    Some(v) => Value::Number(v),
+                    None => Value::Null,
+                })?,
             "^F" => {
                 let mantissa = self
                     .reader
@@ -134,7 +132,10 @@ impl<'s> Deserializer<'s> {
                     for (key, value) in keys.into_iter().zip(values.into_iter()) {
                         let key = match key {
                             Value::String(s) => Ok(s),
-                            Value::Number(n) => n.as_f64().map(|v| v.to_string()).ok_or("Failed to parse a number"),
+                            Value::Number(n) => n
+                                .as_f64()
+                                .map(|v| v.to_string())
+                                .ok_or("Failed to parse a number"),
                             Value::Bool(b) => Ok((if b { "true" } else { "false" }).into()),
                             _ => Err("Unsupported type for an object key"),
                         }?;

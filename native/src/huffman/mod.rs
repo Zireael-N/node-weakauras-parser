@@ -53,7 +53,8 @@ pub(crate) fn decompress(bytes: &[u8], max_size: usize) -> Result<Cow<'_, [u8]>,
 
     // Code extraction:
     for _ in 0..num_symbols {
-        let symbol = bitfield.insert_and_extract_byte(*iter.next().ok_or("Unexpected end of input")?);
+        let symbol =
+            bitfield.insert_and_extract_byte(*iter.next().ok_or("Unexpected end of input")?);
 
         loop {
             bitfield

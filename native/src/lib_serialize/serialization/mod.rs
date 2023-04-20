@@ -25,7 +25,10 @@ pub struct Serializer {
 }
 
 impl Serializer {
-    pub fn serialize(mut value: Value, approximate_len: Option<usize>) -> Result<Vec<u8>, &'static str> {
+    pub fn serialize(
+        mut value: Value,
+        approximate_len: Option<usize>,
+    ) -> Result<Vec<u8>, &'static str> {
         let mut serializer = Self {
             remaining_depth: 128,
             result: Vec::with_capacity(approximate_len.unwrap_or(1024)),
@@ -143,11 +146,13 @@ impl Serializer {
                         self.serialize_int(index, 1);
                     }
                     2 => {
-                        self.result.push(TypeTag::StrRef16.to_u8() << TYPE_TAG_SHIFT);
+                        self.result
+                            .push(TypeTag::StrRef16.to_u8() << TYPE_TAG_SHIFT);
                         self.serialize_int(index, 2);
                     }
                     3 => {
-                        self.result.push(TypeTag::StrRef24.to_u8() << TYPE_TAG_SHIFT);
+                        self.result
+                            .push(TypeTag::StrRef24.to_u8() << TYPE_TAG_SHIFT);
                         self.serialize_int(index, 3);
                     }
                     _ => return Err("Serialization error: more than 2^24 different strings"),
@@ -183,7 +188,8 @@ impl Serializer {
                 }
 
                 if len > 2 {
-                    self.string_refs.insert(value.into(), self.string_refs.len() + 1);
+                    self.string_refs
+                        .insert(value.into(), self.string_refs.len() + 1);
                 }
 
                 self.result.extend_from_slice(value.as_bytes());
@@ -215,7 +221,9 @@ impl Serializer {
         let len = slice.len();
         if len < 16 {
             self.result.push(
-                (EmbeddedTypeTag::Array.to_u8() << EMBEDDED_TYPE_TAG_SHIFT) | ((len as u8) << EMBEDDED_LEN_SHIFT) | 2,
+                (EmbeddedTypeTag::Array.to_u8() << EMBEDDED_TYPE_TAG_SHIFT)
+                    | ((len as u8) << EMBEDDED_LEN_SHIFT)
+                    | 2,
             );
         } else {
             let len = len as u64;
@@ -249,7 +257,9 @@ impl Serializer {
         let len = map.len();
         if len < 16 {
             self.result.push(
-                (EmbeddedTypeTag::Map.to_u8() << EMBEDDED_TYPE_TAG_SHIFT) | ((len as u8) << EMBEDDED_LEN_SHIFT) | 2,
+                (EmbeddedTypeTag::Map.to_u8() << EMBEDDED_TYPE_TAG_SHIFT)
+                    | ((len as u8) << EMBEDDED_LEN_SHIFT)
+                    | 2,
             );
         } else {
             let len = len as u64;
@@ -280,14 +290,20 @@ impl Serializer {
         Ok(())
     }
 
-    fn serialize_mixed(&mut self, slice: &mut [Value], map: &mut Map<String, Value>) -> Result<(), &'static str> {
+    fn serialize_mixed(
+        &mut self,
+        slice: &mut [Value],
+        map: &mut Map<String, Value>,
+    ) -> Result<(), &'static str> {
         let map_len = map.len();
         let slice_len = slice.len();
 
         if map_len < 5 && slice_len < 5 {
             let packed_len = ((map_len as u8 - 1) << 2) | (slice_len as u8 - 1);
             self.result.push(
-                (EmbeddedTypeTag::Mixed.to_u8() << EMBEDDED_TYPE_TAG_SHIFT) | (packed_len << EMBEDDED_LEN_SHIFT) | 2,
+                (EmbeddedTypeTag::Mixed.to_u8() << EMBEDDED_TYPE_TAG_SHIFT)
+                    | (packed_len << EMBEDDED_LEN_SHIFT)
+                    | 2,
             );
         } else {
             let (map_len, slice_len) = (map_len as u64, slice_len as u64);

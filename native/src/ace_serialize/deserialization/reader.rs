@@ -55,7 +55,9 @@ impl<'s> StrReader<'s> {
             // we don't break up a multibyte character.
             match (self.buffer[self.index], self.buffer[self.index + 1]) {
                 (b'^', 0x00..=0x79) => {
-                    let result = unsafe { std::str::from_utf8_unchecked(&self.buffer[self.index..self.index + 2]) };
+                    let result = unsafe {
+                        std::str::from_utf8_unchecked(&self.buffer[self.index..self.index + 2])
+                    };
                     self.index += 2;
                     Ok(result)
                 }
@@ -71,9 +73,9 @@ impl<'s> StrReader<'s> {
             // Matching against the second byte to ensure
             // we don't break up a multibyte character.
             match (self.buffer[self.index], self.buffer[self.index + 1]) {
-                (b'^', 0x00..=0x79) => {
-                    Ok(unsafe { std::str::from_utf8_unchecked(&self.buffer[self.index..self.index + 2]) })
-                }
+                (b'^', 0x00..=0x79) => Ok(unsafe {
+                    std::str::from_utf8_unchecked(&self.buffer[self.index..self.index + 2])
+                }),
                 _ => Err("Not an identifier"),
             }
         } else {
@@ -91,7 +93,9 @@ impl<'s> StrReader<'s> {
                     // SAFETY: As long as `start` does not point at the middle
                     // of a multibyte character, this should be safe.
                     // Public API does not allow the reader to end up in such a state.
-                    return Ok(unsafe { std::str::from_utf8_unchecked(&self.buffer[start..self.index]) });
+                    return Ok(unsafe {
+                        std::str::from_utf8_unchecked(&self.buffer[start..self.index])
+                    });
                 }
                 _ => self.discard(),
             }
@@ -111,16 +115,20 @@ impl<'s> StrReader<'s> {
                         // SAFETY: As long as `copy_from` does not point at the middle
                         // of a multibyte character, this should be safe.
                         // Public API does not allow the reader to end up in such a state.
-                        return Ok(unsafe { std::str::from_utf8_unchecked(&self.buffer[copy_from..self.index]) });
+                        return Ok(unsafe {
+                            std::str::from_utf8_unchecked(&self.buffer[copy_from..self.index])
+                        });
                     } else {
                         // SAFETY: None of the replaced bytes and their replacements
                         // has the most significant bit set to 1.
-                        self.scratch.extend_from_slice(&self.buffer[copy_from..self.index]);
+                        self.scratch
+                            .extend_from_slice(&self.buffer[copy_from..self.index]);
                         return Ok(unsafe { std::str::from_utf8_unchecked(&self.scratch) });
                     }
                 }
                 Some(b'~') => {
-                    self.scratch.extend_from_slice(&self.buffer[copy_from..self.index]);
+                    self.scratch
+                        .extend_from_slice(&self.buffer[copy_from..self.index]);
 
                     self.discard();
 

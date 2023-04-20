@@ -16,11 +16,11 @@ pub(crate) unsafe fn encode(data: &[u8], buf: &mut String) {
 
         ptr.write(ENCODE_LUT[b0]);
         ptr = ptr.add(1);
-        ptr.write(ENCODE_LUT[((b0 >> 6) | (b1 << 2))]);
+        ptr.write(ENCODE_LUT[(b0 >> 6) | (b1 << 2)]);
         ptr = ptr.add(1);
-        ptr.write(ENCODE_LUT[((b1 >> 4) | (b2 << 4))]);
+        ptr.write(ENCODE_LUT[(b1 >> 4) | (b2 << 4)]);
         ptr = ptr.add(1);
-        ptr.write(ENCODE_LUT[(b2 >> 2)]);
+        ptr.write(ENCODE_LUT[b2 >> 2]);
         ptr = ptr.add(1);
     }
 
@@ -33,9 +33,9 @@ pub(crate) unsafe fn encode(data: &[u8], buf: &mut String) {
 
             ptr.write(ENCODE_LUT[b0]);
             ptr = ptr.add(1);
-            ptr.write(ENCODE_LUT[((b0 >> 6) | (b1 << 2))]);
+            ptr.write(ENCODE_LUT[(b0 >> 6) | (b1 << 2)]);
             ptr = ptr.add(1);
-            ptr.write(ENCODE_LUT[(b1 >> 4)]);
+            ptr.write(ENCODE_LUT[b1 >> 4]);
         }
         1 => {
             len += 2;
@@ -43,7 +43,7 @@ pub(crate) unsafe fn encode(data: &[u8], buf: &mut String) {
 
             ptr.write(ENCODE_LUT[b0]);
             ptr = ptr.add(1);
-            ptr.write(ENCODE_LUT[(b0 >> 6)]);
+            ptr.write(ENCODE_LUT[b0 >> 6]);
         }
         _ => (),
     }

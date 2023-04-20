@@ -56,7 +56,8 @@ impl<'s> Deserializer<'s> {
             _ => return Err("Invalid serialized data"),
         }
 
-        self.deserialize_helper().map(|result| result.unwrap_or(Value::Null))
+        self.deserialize_helper()
+            .map(|result| result.unwrap_or(Value::Null))
     }
 
     fn deserialize_helper(&mut self) -> Result<Option<Value>, &'static str> {
@@ -69,7 +70,8 @@ impl<'s> Deserializer<'s> {
                 } else if value & 3 == 2 {
                     // * `CCCC TT10`: a 2 bit type index and 4 bit count (strlen, #tab, etc.)
                     //     * Followed by the type-dependent payload
-                    let tag = EmbeddedTypeTag::from_u8((value & 0x0F) >> 2).ok_or("Invalid embedded tag")?;
+                    let tag = EmbeddedTypeTag::from_u8((value & 0x0F) >> 2)
+                        .ok_or("Invalid embedded tag")?;
                     let len = value >> 4;
 
                     self.deserialize_embedded(tag, len).map(Option::Some)
@@ -120,13 +122,19 @@ impl<'s> Deserializer<'s> {
         }
     }
 
-    fn deserialize_embedded(&mut self, tag: EmbeddedTypeTag, len: u8) -> Result<Value, &'static str> {
+    fn deserialize_embedded(
+        &mut self,
+        tag: EmbeddedTypeTag,
+        len: u8,
+    ) -> Result<Value, &'static str> {
         match tag {
             EmbeddedTypeTag::Str => self.deserialize_string(len as usize),
             EmbeddedTypeTag::Map => self.deserialize_map(len as usize),
             EmbeddedTypeTag::Array => self.deserialize_array(len as usize),
             // For MIXED, the 4-bit count contains two 2-bit counts that are one less than the true count.
-            EmbeddedTypeTag::Mixed => self.deserialize_mixed(((len & 3) + 1) as usize, ((len >> 2) + 1) as usize),
+            EmbeddedTypeTag::Mixed => {
+                self.deserialize_mixed(((len & 3) + 1) as usize, ((len >> 2) + 1) as usize)
+            }
         }
     }
 
@@ -135,17 +143,27 @@ impl<'s> Deserializer<'s> {
             TypeTag::Null => Ok(Value::Null),
 
             TypeTag::Int16Pos => self.deserialize_int(2).map(|v| f64_to_json_value(v as f64)),
-            TypeTag::Int16Neg => self.deserialize_int(2).map(|v| f64_to_json_value(-(v as f64))),
+            TypeTag::Int16Neg => self
+                .deserialize_int(2)
+                .map(|v| f64_to_json_value(-(v as f64))),
             TypeTag::Int24Pos => self.deserialize_int(3).map(|v| f64_to_json_value(v as f64)),
-            TypeTag::Int24Neg => self.deserialize_int(3).map(|v| f64_to_json_value(-(v as f64))),
+            TypeTag::Int24Neg => self
+                .deserialize_int(3)
+                .map(|v| f64_to_json_value(-(v as f64))),
             TypeTag::Int32Pos => self.deserialize_int(4).map(|v| f64_to_json_value(v as f64)),
-            TypeTag::Int32Neg => self.deserialize_int(4).map(|v| f64_to_json_value(-(v as f64))),
+            TypeTag::Int32Neg => self
+                .deserialize_int(4)
+                .map(|v| f64_to_json_value(-(v as f64))),
             TypeTag::Int64Pos => self.deserialize_int(7).map(|v| f64_to_json_value(v as f64)),
-            TypeTag::Int64Neg => self.deserialize_int(7).map(|v| f64_to_json_value(-(v as f64))),
+            TypeTag::Int64Neg => self
+                .deserialize_int(7)
+                .map(|v| f64_to_json_value(-(v as f64))),
 
             TypeTag::Float => self.deserialize_f64().map(f64_to_json_value),
             TypeTag::FloatStrPos => self.deserialize_f64_from_str().map(f64_to_json_value),
-            TypeTag::FloatStrNeg => self.deserialize_f64_from_str().map(|v| f64_to_json_value(-v)),
+            TypeTag::FloatStrNeg => self
+                .deserialize_f64_from_str()
+                .map(|v| f64_to_json_value(-v)),
 
             TypeTag::True => Ok(Value::Bool(true)),
             TypeTag::False => Ok(Value::Bool(false)),
@@ -324,7 +342,11 @@ impl<'s> Deserializer<'s> {
         Ok(v)
     }
 
-    fn deserialize_mixed(&mut self, array_len: usize, map_len: usize) -> Result<Value, &'static str> {
+    fn deserialize_mixed(
+        &mut self,
+        array_len: usize,
+        map_len: usize,
+    ) -> Result<Value, &'static str> {
         let mut map = Map::new();
 
         for i in 1..=array_len {

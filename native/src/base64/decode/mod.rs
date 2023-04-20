@@ -1,5 +1,8 @@
 mod scalar;
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "ssse3"))]
+#[cfg(all(
+    any(target_arch = "x86", target_arch = "x86_64"),
+    target_feature = "ssse3"
+))]
 mod sse;
 
 #[inline(always)]
@@ -20,7 +23,10 @@ fn calculate_capacity(s: &str) -> Result<usize, &'static str> {
     Ok(result)
 }
 
-#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "ssse3"))]
+#[cfg(all(
+    any(target_arch = "x86", target_arch = "x86_64"),
+    target_feature = "ssse3"
+))]
 pub(crate) fn decode(s: &str) -> Result<Vec<u8>, &'static str> {
     let mut buffer = Vec::with_capacity(calculate_capacity(s)?);
     unsafe {
@@ -29,7 +35,10 @@ pub(crate) fn decode(s: &str) -> Result<Vec<u8>, &'static str> {
     Ok(buffer)
 }
 
-#[cfg(any(not(any(target_arch = "x86", target_arch = "x86_64")), not(target_feature = "ssse3")))]
+#[cfg(any(
+    not(any(target_arch = "x86", target_arch = "x86_64")),
+    not(target_feature = "ssse3")
+))]
 pub(crate) fn decode(s: &str) -> Result<Vec<u8>, &'static str> {
     let mut buffer = Vec::with_capacity(calculate_capacity(s)?);
     unsafe {
@@ -43,7 +52,10 @@ mod tests {
     use super::*;
 
     #[test]
-    #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "ssse3"))]
+    #[cfg(all(
+        any(target_arch = "x86", target_arch = "x86_64"),
+        target_feature = "ssse3"
+    ))]
     fn scalar_and_sse_return_same_values() {
         let data: Vec<u8> = (b'0'..=b'9')
             .chain(b'a'..=b'z')

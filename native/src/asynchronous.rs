@@ -8,7 +8,11 @@ pub fn decode_weakaura(mut cx: FunctionContext) -> JsResult<JsPromise> {
 
     let promise = cx
         .task(move || common::decode_weakaura(&src, max_size))
-        .promise(|mut cx, result| result.map(|json| cx.string(json)).or_else(|e| cx.throw_error(e)));
+        .promise(|mut cx, result| {
+            result
+                .map(|json| cx.string(json))
+                .or_else(|e| cx.throw_error(e))
+        });
 
     Ok(promise)
 }
