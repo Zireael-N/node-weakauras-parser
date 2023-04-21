@@ -7,7 +7,7 @@ ENV RUSTUP_HOME=/usr/local/rustup \
 
 WORKDIR /app
 COPY . .
-RUN apk add --update --virtual build-deps g++ make cmake zlib curl git python3 python2 \
+RUN apk add --update --virtual build-deps g++ make cmake zlib curl git python3 \
     && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --profile=minimal -y \
     && yarn install --production=false --ignore-scripts \
     && yarn exec -- cargo-cp-artifact -nc native/index.node -- cargo build --release --manifest-path=native/Cargo.toml --message-format=json-render-diagnostics \
