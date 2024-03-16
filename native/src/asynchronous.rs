@@ -19,9 +19,10 @@ pub fn decode_weakaura(mut cx: FunctionContext) -> JsResult<JsPromise> {
 
 pub fn encode_weakaura(mut cx: FunctionContext) -> JsResult<JsPromise> {
     let src = cx.argument::<JsString>(0)?.value(&mut cx);
+    let string_version = common::parse_string_version(cx.argument_opt(1), &mut cx)?;
 
     let promise = cx
-        .task(move || common::encode_weakaura(&src))
+        .task(move || common::encode_weakaura(&src, string_version))
         .promise(|mut cx, result| {
             result
                 .map(|serialized| cx.string(serialized))

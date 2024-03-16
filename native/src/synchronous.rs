@@ -13,8 +13,9 @@ pub fn decode_weakaura(mut cx: FunctionContext) -> JsResult<JsString> {
 
 pub fn encode_weakaura(mut cx: FunctionContext) -> JsResult<JsString> {
     let json = cx.argument::<JsString>(0)?.value(&mut cx);
+    let string_version = common::parse_string_version(cx.argument_opt(1), &mut cx)?;
 
-    common::encode_weakaura(&json)
+    common::encode_weakaura(&json, string_version)
         .map(|result| cx.string(result))
         .or_else(|e| cx.throw_error(e))
 }
