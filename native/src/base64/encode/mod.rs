@@ -42,17 +42,15 @@ unsafe fn encode(data: &[u8], buf: &mut String) {
     scalar::encode(data, buf);
 }
 
-/// Same as encode_raw() but prepends the output with "!WA:2!"
+/// Same as encode_raw() but prepends the output with the provided prefix
 /// to reduce allocations.
-pub(crate) fn encode_weakaura(data: &[u8]) -> Result<String, &'static str> {
-    const WA_PREFIX: &str = "!WA:2!";
-
+pub(crate) fn encode_with_prefix(data: &[u8], prefix: &str) -> Result<String, &'static str> {
     let mut result = String::with_capacity(
         calculate_capacity(data)
-            .and_then(|len| len.checked_add(WA_PREFIX.len()))
+            .and_then(|len| len.checked_add(prefix.len()))
             .ok_or(OVERFLOW_ERROR)?,
     );
-    result.push_str(WA_PREFIX);
+    result.push_str(prefix);
 
     unsafe {
         encode(data, &mut result);

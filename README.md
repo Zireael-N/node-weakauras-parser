@@ -51,6 +51,8 @@ console.log(JSON.stringify(source) === JSON.stringify(decoded));
 
 Both `decode()` and `decodeSync()` accept an optional argument to configure the memory usage limit for decompression (in bytes). Default value is 8 MBs. You can pass `+Infinity` to disable it.
 
+Both `encode` and `encodeSync()` accept an optional argument to specify the encoding version. See the definition of FormatVersion in [index.d.ts](https://github.com/Zireael-N/node-weakauras-parser/blob/master/lib/index.d.ts).
+
 ## Known issues
 
 - Table references from LibSerialize are not fully supported.

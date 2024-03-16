@@ -5,11 +5,11 @@ use std::borrow::Cow;
 use super::base64;
 use super::huffman;
 
-use super::ace_serialize::Deserializer as LegacyDeserializer;
+use super::ace_serialize::{Deserializer as LegacyDeserializer, Serializer as LegacySerializer};
 use super::lib_serialize::{Deserializer, Serializer};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum StringVersion {
+pub enum StringVersion {
     Huffman,             // base64
     Deflate,             // '!' + base64
     BinarySerialization, // !WA:\d+! + base64
@@ -39,6 +39,29 @@ pub fn parse_max_size<'a>(
             }
         }
         None => Ok(Some(8 * 1024 * 1024)),
+    }
+}
+
+pub fn parse_string_version<'a>(
+    v: Option<Handle<'a, JsValue>>,
+    cx: &'a mut FunctionContext,
+) -> NeonResult<StringVersion> {
+    match v {
+        Some(v) => {
+            if v.is_a::<JsUndefined, _>(cx) {
+                Ok(StringVersion::BinarySerialization)
+            } else {
+                v.downcast_or_throw::<JsNumber, _>(cx).and_then(|v| {
+                    let v = v.value(cx).trunc() as u64;
+                    match v {
+                        1 => Ok(StringVersion::Deflate),
+                        2 => Ok(StringVersion::BinarySerialization),
+                        _ => cx.throw_type_error("Invalid value"),
+                    }
+                })
+            }
+        }
+        None => Ok(StringVersion::BinarySerialization),
     }
 }
 
@@ -88,10 +111,19 @@ pub fn decode_weakaura(src: &str, max_size: Option<usize>) -> Result<String, &'s
     serde_json::to_string(&deserialized).map_err(|_| "Failed to convert to JSON")
 }
 
-pub fn encode_weakaura(json: &str) -> Result<String, &'static str> {
-    let serialized = serde_json::from_str(json)
-        .map_err(|_| "Failed to parse JSON")
-        .and_then(|val| Serializer::serialize(val, Some(json.len())))?;
+pub fn encode_weakaura(json: &str, format: StringVersion) -> Result<String, &'static str> {
+    let data = serde_json::from_str(json).map_err(|_| "Failed to parse JSON")?;
+
+    let (serialized, prefix) = match format {
+        StringVersion::Deflate => (
+            LegacySerializer::serialize(&data, Some(json.len())).map(|v| v.into_bytes())?,
+            "!",
+        ),
+        StringVersion::BinarySerialization => {
+            (Serializer::serialize(data, Some(json.len()))?, "!WA:2!")
+        }
+        _ => return Err("Unsupported StringVersion"),
+    };
 
     let compressed = {
         use flate2::{read::DeflateEncoder, Compression};
@@ -106,7 +138,7 @@ pub fn encode_weakaura(json: &str) -> Result<String, &'static str> {
             .map_err(|_| "Compression error")
     }?;
 
-    base64::encode_weakaura(&compressed)
+    base64::encode_with_prefix(&compressed, prefix)
 }
 
 // Borrowed from https://doc.rust-lang.org/std/primitive.slice.html#method.trim_ascii_end.
