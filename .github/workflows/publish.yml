@@ -66,6 +66,11 @@ jobs:
       if: matrix.build != 'Windows'
       shell: bash
       run: |
+        if command -v apt; then
+          apt update && apt install dos2unix
+        elif command -v brew; then
+          brew install dos2unix
+        fi
         dos2unix -F node_modules/.bin/node-pre-gyp-github
 
     - name: Publish the binary
