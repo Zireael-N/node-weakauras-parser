@@ -1,9 +1,9 @@
 mod reader;
 
-use super::{EmbeddedTypeTag, TypeTag, MINOR};
+use super::{EmbeddedTypeTag, MINOR, TypeTag};
 use crate::macros::check_recursion;
 use reader::SliceReader;
-use serde_json::{map::Map, Number, Value};
+use serde_json::{Number, Value, map::Map};
 
 fn f64_to_json_value(value: f64) -> Value {
     match Number::from_f64(value) {

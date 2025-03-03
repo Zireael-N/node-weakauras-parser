@@ -1,4 +1,4 @@
-ARG NODE_VERSION=20
+ARG NODE_VERSION=22
 FROM node:${NODE_VERSION}-alpine
 ARG RUSTFLAGS="-C target-feature=-crt-static"
 ENV RUSTUP_HOME=/usr/local/rustup \

@@ -1,7 +1,7 @@
-use super::{EmbeddedTypeTag, TypeTag, MINOR};
+use super::{EmbeddedTypeTag, MINOR, TypeTag};
 use crate::macros::check_recursion;
 use indexmap::IndexMap;
-use serde_json::{map::Map, Value};
+use serde_json::{Value, map::Map};
 
 const TYPE_TAG_SHIFT: u8 = 3;
 const EMBEDDED_TYPE_TAG_SHIFT: u8 = 2;

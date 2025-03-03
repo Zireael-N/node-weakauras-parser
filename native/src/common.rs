@@ -74,7 +74,7 @@ pub fn decode_weakaura(src: &str, max_size: Option<usize>) -> Result<String, &'s
         (src, StringVersion::Huffman)
     };
 
-    let decoded = base64::decode(trim_ascii_from_end_of_str(weakaura))?;
+    let decoded = base64::decode(weakaura.trim_ascii_end())?;
 
     let max_size = max_size.unwrap_or(usize::MAX);
     let decompressed = if version == StringVersion::Huffman {
@@ -126,7 +126,7 @@ pub fn encode_weakaura(json: &str, format: StringVersion) -> Result<String, &'st
     };
 
     let compressed = {
-        use flate2::{read::DeflateEncoder, Compression};
+        use flate2::{Compression, read::DeflateEncoder};
         use std::io::prelude::*;
 
         let mut result = Vec::new();
@@ -139,30 +139,4 @@ pub fn encode_weakaura(json: &str, format: StringVersion) -> Result<String, &'st
     }?;
 
     base64::encode_with_prefix(&compressed, prefix)
-}
-
-// Borrowed from https://doc.rust-lang.org/std/primitive.slice.html#method.trim_ascii_end.
-// As of Rust 1.76 it's nightly-only. Tracking issue: https://github.com/rust-lang/rust/issues/94035
-#[inline]
-const fn trim_ascii_from_end_of_slice(slice: &[u8]) -> &[u8] {
-    let mut bytes = slice;
-    // Note: A pattern matching based approach (instead of indexing) allows
-    // making the function const.
-    while let [rest @ .., last] = bytes {
-        if last.is_ascii_whitespace() {
-            bytes = rest;
-        } else {
-            break;
-        }
-    }
-    bytes
-}
-
-// Borrowed from https://doc.rust-lang.org/std/primitive.str.html#method.trim_ascii_end.
-// As of Rust 1.76 it's nightly-only. Tracking issue: https://github.com/rust-lang/rust/issues/94035
-#[inline]
-pub const fn trim_ascii_from_end_of_str(s: &str) -> &str {
-    // SAFETY: Removing ASCII characters from a `&str` does not invalidate
-    // UTF-8.
-    unsafe { core::str::from_utf8_unchecked(trim_ascii_from_end_of_slice(s.as_bytes())) }
 }

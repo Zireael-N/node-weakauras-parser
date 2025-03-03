@@ -7,7 +7,7 @@ mod lookup_table;
 mod utils;
 
 use self::bitfield::Bitfield;
-use lookup_table::{build_lookup_table, TableData};
+use lookup_table::{TableData, build_lookup_table};
 use std::borrow::Cow;
 use utils::{get_code, unescape_code};
 

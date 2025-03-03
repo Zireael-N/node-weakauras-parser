@@ -1,8 +1,8 @@
 [package]
 name = "node-weakauras-parser"
-version = "3.2.3"
+version = "3.2.4"
 authors = ["Velithris"]
-edition = "2021"
+edition = "2024"
 license = "MIT"
 exclude = ["index.node"]
 

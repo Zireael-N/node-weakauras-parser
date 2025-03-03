@@ -1,5 +1,5 @@
 use crate::macros::check_recursion;
-use serde_json::{map::Map, Number, Value};
+use serde_json::{Number, Value, map::Map};
 
 mod reader;
 use reader::StrReader;
