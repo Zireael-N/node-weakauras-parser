@@ -60,6 +60,14 @@ jobs:
         fi
         echo "SHA-512 of native/index.node: ${SHA512:-N/A}"
 
+    # There's an issue with the shebang, macOS and Linux try to look for 'node\r'.
+    # This fixes it, but JFC.
+    - name: Convert node-pre-gyp-github to LF line endings
+      if: matrix.build != 'Windows'
+      shell: bash
+      run: |
+        dos2unix -F node_modules/.bin/node-pre-gyp-github
+
     - name: Publish the binary
       shell: bash
       env:
