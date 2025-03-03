@@ -48,8 +48,8 @@ pub(crate) fn decompress(bytes: &[u8], max_size: usize) -> Result<Cow<'_, [u8]>,
 
     let mut bitfield = Bitfield::new();
 
-    let mut min_code_len = std::u8::MAX;
-    let mut max_code_len = std::u8::MIN;
+    let mut min_code_len = u8::MAX;
+    let mut max_code_len = u8::MIN;
 
     // Code extraction:
     for _ in 0..num_symbols {

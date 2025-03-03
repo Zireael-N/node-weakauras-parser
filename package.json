@@ -7,11 +7,11 @@
   "author": "Velithris",
   "license": "MIT",
   "dependencies": {
-    "@mapbox/node-pre-gyp": "^1.0",
+    "@mapbox/node-pre-gyp": "^2.0",
     "cargo-cp-artifact": "^0.1"
   },
   "devDependencies": {
-    "node-pre-gyp-github": "^1.4"
+    "node-pre-gyp-github": "^2.0"
   },
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build=false || cargo-cp-artifact -nc native/index.node -- cargo build --release --manifest-path=native/Cargo.toml --message-format=json-render-diagnostics",

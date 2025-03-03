@@ -151,8 +151,8 @@ impl<'s> Deserializer<'s> {
 
     fn deserialize_number(data: &str) -> Result<f64, &'static str> {
         match data {
-            "1.#INF" | "inf" => Ok(std::f64::INFINITY),
-            "-1.#INF" | "-inf" => Ok(std::f64::NEG_INFINITY),
+            "1.#INF" | "inf" => Ok(f64::INFINITY),
+            "-1.#INF" | "-inf" => Ok(f64::NEG_INFINITY),
             v => v.parse().map_err(|_| "Failed to parse a number"),
         }
     }

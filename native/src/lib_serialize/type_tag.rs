@@ -12,7 +12,7 @@ impl EmbeddedTypeTag {
     pub(crate) fn from_u8(v: u8) -> Option<Self> {
         if v <= 3 {
             // SAFETY: we've checked that `v` can be represented as `EmbeddedTypeTag`
-            Some(unsafe { std::mem::transmute(v) })
+            Some(unsafe { std::mem::transmute::<u8, EmbeddedTypeTag>(v) })
         } else {
             None
         }
@@ -75,7 +75,7 @@ impl TypeTag {
     pub(crate) fn from_u8(v: u8) -> Option<Self> {
         if v <= 31 {
             // SAFETY: we've checked that `v` can be represented as `TypeTag`
-            Some(unsafe { std::mem::transmute(v) })
+            Some(unsafe { std::mem::transmute::<u8, TypeTag>(v) })
         } else {
             None
         }
