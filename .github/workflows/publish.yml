@@ -19,7 +19,7 @@ jobs:
           env: { RUSTFLAGS: "-C target-cpu=haswell" }
         # target-cpu=haswell causes libz_sys to fail compilation on macOS
         - build: macOS
-          os: macos-latest
+          os: macos-13
           env: {}
         - build: Windows
           os: windows-latest
@@ -68,7 +68,7 @@ jobs:
       run: |
         if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
           sudo apt-get update && sudo apt-get install dos2unix
-        elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+        elif [ "${{ matrix.os }}" = "macos-13" ]; then
           brew install dos2unix
         fi
         dos2unix -F node_modules/.bin/node-pre-gyp-github
