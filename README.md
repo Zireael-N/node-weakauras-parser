@@ -81,4 +81,4 @@ Both `encode` and `encodeSync()` accept an optional argument to specify the enco
 
 ## License
 
-The project is licensed under MIT License, unless stated otherwise in a source file.
+The source code is licensed under the MIT License. However, it depends on GPL-licensed code, so the whole distribution is licensed under GPLv2.
