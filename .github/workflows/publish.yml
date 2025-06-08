@@ -27,44 +27,44 @@ jobs:
         - windows-node10
         include:
         - build: ubuntu-node16
-          os: ubuntu-20.04
+          os: ubuntu-22.04
           node: 16
           env: { RUSTFLAGS: "-C target-cpu=haswell" }
         - build: ubuntu-node15
-          os: ubuntu-20.04
+          os: ubuntu-22.04
           node: 15
           env: { RUSTFLAGS: "-C target-cpu=haswell" }
         - build: ubuntu-node14
-          os: ubuntu-20.04
+          os: ubuntu-22.04
           node: 14
           env: { RUSTFLAGS: "-C target-cpu=haswell" }
         - build: ubuntu-node12
-          os: ubuntu-20.04
+          os: ubuntu-22.04
           node: 12
           env: { RUSTFLAGS: "-C target-cpu=haswell" }
         - build: ubuntu-node10
-          os: ubuntu-20.04
+          os: ubuntu-22.04
           node: 10
           env: { RUSTFLAGS: "-C target-cpu=haswell" }
         # target-cpu=haswell causes libz_sys to fail compilation on macOS
         - build: macos-node16
-          os: macos-latest
+          os: macos-13
           node: 16
           env: {}
         - build: macos-node15
-          os: macos-latest
+          os: macos-13
           node: 15
           env: {}
         - build: macos-node14
-          os: macos-latest
+          os: macos-13
           node: 14
           env: {}
         - build: macos-node12
-          os: macos-latest
+          os: macos-13
           node: 12
           env: {}
         - build: macos-node10
-          os: macos-latest
+          os: macos-13
           node: 10
           env: {}
         - build: windows-node16
