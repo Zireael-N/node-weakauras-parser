@@ -150,7 +150,7 @@ dependencies = [
 
 [[package]]
 name = "node-weakauras-parser"
-version = "2.0.12"
+version = "2.0.13"
 dependencies = [
  "flate2",
  "neon",
