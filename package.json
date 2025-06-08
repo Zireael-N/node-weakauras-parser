@@ -1,11 +1,11 @@
 {
   "name": "node-weakauras-parser",
-  "version": "3.1.4",
+  "version": "3.1.5",
   "description": "Native module for Node.js that does deserialization/serialization of WeakAuras' strings",
   "keywords": ["World of Warcraft", "WoW", "WeakAuras", "WA"],
   "main": "lib/index.js",
   "author": "Velithris",
-  "license": "MIT",
+  "license": "GPL-2.0-only",
   "dependencies": {
     "neon-cli": "^0.8.0",
     "node-pre-gyp": "amilajack/node-pre-gyp"
