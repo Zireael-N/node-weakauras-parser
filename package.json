@@ -10,13 +10,10 @@
     "@mapbox/node-pre-gyp": "^2.0",
     "cargo-cp-artifact": "^0.1"
   },
-  "devDependencies": {
-    "node-pre-gyp-github": "^2.0"
-  },
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build=false || cargo-cp-artifact -nc native/index.node -- cargo build --release --manifest-path=native/Cargo.toml --message-format=json-render-diagnostics",
     "install:debug": "cargo-cp-artifact -nc native/index.node -- cargo build --manifest-path=native/Cargo.toml --message-format=json-render-diagnostics",
-    "upload-binary": "node-pre-gyp package && node-pre-gyp-github publish"
+    "package-binary": "node-pre-gyp package"
   },
   "repository": {
     "type": "git",

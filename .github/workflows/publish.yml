@@ -1,22 +1,46 @@
 name: publish
+
+permissions:
+  contents: write
+
 on:
   push:
     tags:
     - v[0-9]+.[0-9]+.[0-9]+
+
 jobs:
-  publish:
+  create-release:
+    name: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create a GitHub release
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create \
+            ${{ github.ref_name }} \
+            --repo ${{ github.event.repository.full_name }} \
+            --verify-tag \
+            --generate-notes
+
+  publish-release:
     name: Publish (${{ matrix.build }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         build:
         - Ubuntu
+        - Alpine
         - macOS
         - Windows
         include:
         - build: Ubuntu
           os: ubuntu-latest
           env: { RUSTFLAGS: "-C target-cpu=haswell" }
+        - build: Alpine
+          os: ubuntu-latest
+          env: { RUSTFLAGS: "-C target-cpu=haswell -C target-feature=-crt-static" }
         # target-cpu=haswell causes libz_sys to fail compilation on macOS
         - build: macOS
           os: macos-13
@@ -28,22 +52,25 @@ jobs:
 
     steps:
     - name: Checkout the repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      with:
+        persist-credentials: false
 
     - name: Install Node
-      uses: actions/setup-node@v1
+      if: matrix.build != 'Alpine'
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
       with:
         node-version: 22
 
     - name: Install Rust
-      uses: actions-rs/toolchain@v1
+      if: matrix.build != 'Alpine'
+      uses: dtolnay/rust-toolchain@b3b07ba8b418998c39fb20f53e8b695cdcc8de1b # v1
       with:
         toolchain: stable
-        profile: minimal
-        override: true
 
     # Windows fails on `yarn exec` with "Couldn't find the binary", calling node directly
-    - name: Build the binary
+    - name: Build and package the binary
+      if: matrix.build != 'Alpine'
       shell: bash
       env: ${{ matrix.env }}
       run: |
@@ -60,38 +87,47 @@ jobs:
         fi
         echo "SHA-512 of native/index.node: ${SHA512:-N/A}"
 
-    # There's an issue with the shebang, macOS and Linux try to look for 'node\r'.
-    # This fixes it, but JFC.
-    - name: Convert node-pre-gyp-github to LF line endings
-      if: matrix.build != 'Windows'
-      shell: bash
-      run: |
-        if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-          sudo apt-get update && sudo apt-get install dos2unix
-        elif [ "${{ matrix.os }}" = "macos-13" ]; then
-          brew install dos2unix
-        fi
-        dos2unix -F node_modules/.bin/node-pre-gyp-github
+        rm -rf native/target/
+        yarn package-binary
 
+    - name: Build and package the binary (Docker)
+      if: matrix.build == 'Alpine'
+      shell: bash
+      env: ${{ matrix.env }}
+      run: |
+        docker build -t alpine-builder -f .github/workflows/Dockerfile .
+
+        CURRENT_USER=$(whoami)
+        USER_ID=$(id -u $CURRENT_USER)
+        GROUP_ID=$(id -g $CURRENT_USER)
+
+        docker run --rm \
+          -v "$PWD/native:/app:Z" \
+          --workdir="/app" \
+          --env="RUSTFLAGS=$RUSTFLAGS" \
+          alpine-builder \
+          cargo build --release
+
+        docker run --rm \
+          -v "$PWD/native:/app:Z" \
+          --workdir="/app" \
+          alpine-builder \
+          chown -R $USER_ID:$GROUP_ID target/
+
+        mv native/target/release/libnode_weakauras_parser.so native/index.node
+        echo "SHA-512 of native/index.node: $(sha512sum native/index.node | awk '{ print $1 }')"
+
+        rm -rf native/target/
+        mkdir -p build/stage/${{ github.ref_name }}/
+        tar -cvzf build/stage/${{ github.ref_name }}/linux-x64-musl.tar.gz native
+        
     - name: Publish the binary
       shell: bash
       env:
-        NODE_PRE_GYP_GITHUB_TOKEN: ${{ secrets.NODE_PRE_GYP_GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        rm -rf native/target && yarn upload-binary || exit 0
-
-  publish-alpine:
-    name: Publish (Alpine Linux)
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout the repo
-      uses: actions/checkout@v3
-
-    - name: Build the binary
-      run: |
-        docker build --build-arg RUSTFLAGS="-C target-cpu=haswell -C target-feature=-crt-static" -t nwp:latest -f .github/workflows/Dockerfile .
-
-    - name: Publish the binary
-      shell: bash
-      run: |
-        docker run --rm --env NODE_PRE_GYP_GITHUB_TOKEN="${{ secrets.NODE_PRE_GYP_GITHUB_TOKEN }}" nwp:latest yarn upload-binary || exit 0
+        FILENAME="$(find build/stage/${{ github.ref_name }}/ -name '*.tar.gz' -type f | head -n1)"
+        gh release upload \
+          ${{ github.ref_name }} \
+          "$FILENAME" \
+          --repo ${{ github.event.repository.full_name }}
