@@ -26,6 +26,7 @@ jobs:
 
   publish-release:
     name: Publish (${{ matrix.build }})
+    needs: ['create-release']
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
