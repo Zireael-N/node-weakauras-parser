@@ -13,7 +13,7 @@ pub fn parse_max_size<'a>(
                 v.downcast_or_throw::<JsNumber, _>(cx).and_then(|v| {
                     let v = v.value(cx);
                     if v == f64::INFINITY {
-                        Ok(None)
+                        Ok(Some(usize::MAX))
                     } else if v.is_finite() && v >= 0.0 {
                         Ok(Some(v.trunc() as usize))
                     } else {
