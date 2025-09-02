@@ -47,10 +47,9 @@ jobs:
         - build: Alpine
           os: ubuntu-latest
           env: { RUSTFLAGS: "-C target-cpu=haswell -C target-feature=-crt-static" }
-        # target-cpu=haswell causes libz_sys to fail compilation on macOS
         - build: 'macOS, x86_64'
           os: macos-13
-          env: {}
+          env: { RUSTFLAGS: "-C target-cpu=haswell" }
         - build: macOS
           os: macos-latest
           env: {}
