@@ -1,6 +1,6 @@
 [package]
 name = "node-weakauras-parser"
-version = "3.2.9"
+version = "3.2.10"
 authors = ["Velithris"]
 edition = "2024"
 license = "MIT"
@@ -22,6 +22,6 @@ neon = { version = "1", features = ["napi-4"], default-features = false }
 serde_json = { version = "1", features = ["preserve_order"] }
 
 [dependencies.weakauras-codec]
-version = "0.1.0"
+version = "0.1.1"
 default-features = false
 features = ["flate2-zlib-rs", "serde", "lua-value-indexmap"]
