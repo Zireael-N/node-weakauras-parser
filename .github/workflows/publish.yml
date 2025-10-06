@@ -48,7 +48,7 @@ jobs:
           os: ubuntu-latest
           env: { RUSTFLAGS: "-C target-cpu=haswell -C target-feature=-crt-static" }
         - build: 'macOS, x86_64'
-          os: macos-13
+          os: macos-15-intel
           env: { RUSTFLAGS: "-C target-cpu=haswell" }
         - build: macOS
           os: macos-latest
