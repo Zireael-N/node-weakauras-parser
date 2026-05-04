@@ -1,6 +1,6 @@
 {
   "name": "node-weakauras-parser",
-  "version": "3.2.10",
+  "version": "3.2.11",
   "description": "Native module for Node.js that does deserialization/serialization of WeakAuras' strings",
   "keywords": ["World of Warcraft", "WoW", "WeakAuras", "WA"],
   "main": "lib/index.js",
@@ -17,7 +17,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Zireael-N/node-weakauras-parser.git"
+    "url": "https://codeberg.org/Velithris/node-weakauras-parser.git"
   },
   "engines": {
     "node": ">= 12"
